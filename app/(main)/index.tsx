@@ -17,11 +17,11 @@ export default function Index() {
         {user?.imageUrl ? (
           <Image 
             source={{ uri: user.imageUrl }} 
-            className="w-24 h-24 rounded-full mb-4 border-4 border-blue-50"
+            className="w-24 h-24 rounded-full mb-4 border-4 border-primary-50"
           />
         ) : (
-          <View className="w-24 h-24 bg-blue-50 rounded-full items-center justify-center mb-4">
-            <UserIcon size={40} color="#2563EB" />
+          <View className="w-24 h-24 bg-primary-50 rounded-full items-center justify-center mb-4">
+            <UserIcon size={40} color="#298f50" />
           </View>
         )}
         <Text className="text-2xl font-bold text-gray-900">Hello, {user?.firstName || "User"}!</Text>

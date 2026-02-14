@@ -70,7 +70,7 @@ export default function SignIn() {
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         <View className="flex-1 px-8 pt-20 pb-10">
           <View className="items-center mb-10">
-            <View className="w-20 h-20 bg-blue-50 rounded-3xl items-center justify-center mb-6 shadow-sm">
+            <View className="w-20 h-20 bg-primary-50 rounded-3xl items-center justify-center mb-6 shadow-sm">
               <Image
                 source={require("@/assets/images/logo.png")}
                 className="w-12 h-12"
@@ -129,14 +129,14 @@ export default function SignIn() {
             </View>
 
             <TouchableOpacity className="items-end mt-2">
-              <Text className="text-blue-600 font-semibold text-sm">Forgot Password?</Text>
+              <Text className="text-primary-600 font-semibold text-sm">Forgot Password?</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={onSignInPress}
               disabled={loading || !email || !password}
               className={`mt-10 py-4 rounded-2xl items-center shadow-lg ${
-                loading || !email || !password ? "bg-blue-300" : "bg-blue-600 shadow-blue-200"
+                loading || !email || !password ? "bg-primary-300" : "bg-primary shadow-primary-200"
               }`}
             >
               {loading ? (
@@ -158,7 +158,7 @@ export default function SignIn() {
               onPress={onGoogleSignInPress}
               className="flex-1 flex-row items-center justify-center bg-white border border-gray-100 py-4 rounded-2xl shadow-sm"
             >
-              <Google size={20} color="#4285F4" />
+              <Google size={20} color="#298f50" />
               <Text className="ml-3 font-semibold text-gray-700">Google</Text>
             </TouchableOpacity>
           </View>
@@ -167,7 +167,7 @@ export default function SignIn() {
             <Text className="text-gray-500 font-medium">Don't have an account? </Text>
             <Link href="/(auth)/sign-up" asChild>
               <TouchableOpacity>
-                <Text className="text-blue-600 font-bold">Sign Up</Text>
+                <Text className="text-primary-600 font-bold">Sign Up</Text>
               </TouchableOpacity>
             </Link>
           </View>
