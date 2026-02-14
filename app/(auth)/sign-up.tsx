@@ -73,8 +73,8 @@ export default function SignUp() {
     return (
       <View className="flex-1 bg-white px-8 pt-20">
         <View className="items-center mb-10">
-          <View className="w-20 h-20 bg-blue-50 rounded-3xl items-center justify-center mb-6">
-            <Mail size={40} color="#2563EB" />
+          <View className="w-20 h-20 bg-primary-50 rounded-3xl items-center justify-center mb-6">
+            <Mail size={40} color="#298f50" />
           </View>
           <Text className="text-3xl font-bold text-gray-900 mb-2 text-center">Verify Email</Text>
           <Text className="text-gray-500 text-center">
@@ -97,7 +97,7 @@ export default function SignUp() {
             onPress={onPressVerify}
             disabled={loading || code.length < 6}
             className={`mt-10 py-4 rounded-2xl items-center shadow-lg ${
-              loading || code.length < 6 ? "bg-blue-300" : "bg-blue-600 shadow-blue-200"
+              loading || code.length < 6 ? "bg-primary-300" : "bg-primary shadow-primary-200"
             }`}
           >
             {loading ? (
@@ -190,7 +190,7 @@ export default function SignUp() {
               onPress={onSignUpPress}
               disabled={loading || !email || !password || !firstName}
               className={`mt-10 py-4 rounded-2xl items-center shadow-lg ${
-                loading || !email || !password || !firstName ? "bg-blue-300" : "bg-blue-600 shadow-blue-200"
+                loading || !email || !password || !firstName ? "bg-primary-300" : "bg-primary shadow-primary-200"
               }`}
             >
               {loading ? (
@@ -208,7 +208,7 @@ export default function SignUp() {
             <Text className="text-gray-500 font-medium">Already have an account? </Text>
             <Link href="/(auth)/sign-in" asChild>
               <TouchableOpacity>
-                <Text className="text-blue-600 font-bold">Sign In</Text>
+                <Text className="text-primary-600 font-bold">Sign In</Text>
               </TouchableOpacity>
             </Link>
           </View>
