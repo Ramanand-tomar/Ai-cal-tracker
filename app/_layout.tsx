@@ -24,11 +24,17 @@ function InitialLayout() {
     }
 
     // Direct listen to user document for onboarding status
-    const unsub = onSnapshot(doc(db, "users", user.id), (docS) => {
-      if (docS.exists()) {
-        setOnboardingCompleted(docS.data().onboardingCompleted || false);
-      } else {
-        setOnboardingCompleted(false);
+    const unsub = onSnapshot(doc(db, "users", user.id), {
+      next: (docS) => {
+        if (docS.exists()) {
+          setOnboardingCompleted(docS.data().onboardingCompleted || false);
+        } else {
+          setOnboardingCompleted(false);
+        }
+      },
+      error: (err) => {
+        console.warn("Error listening to user document:", err);
+        // Fallback or handle accordingly
       }
     });
 
