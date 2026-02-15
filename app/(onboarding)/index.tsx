@@ -4,24 +4,34 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import {
-    HeightIcon,
-    UserIcon,
-    WeightIcon,
-    Work01Icon
+  AiSettingIcon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Calendar01Icon,
+  HealthIcon,
+  HeightIcon,
+  UserIcon,
+  WeightIcon,
+  Work01Icon
 } from "hugeicons-react-native";
 import React, { useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    Dimensions,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
+// Mock icons for gender and goal if they don't exist in basic hugeicons
+const MaleIcon = UserIcon;
+const FemaleIcon = UserIcon;
+const GymIcon = HealthIcon;
 
 const { width } = Dimensions.get("window");
 
@@ -202,7 +212,7 @@ export default function Onboarding() {
             />
             <OptionCard 
               title="Maintain Health" 
-              icon={AiSetting01Icon} 
+              icon={AiSettingIcon} 
               isSelected={goal === "maintain"} 
               onPress={() => setGoal("maintain")} 
             />
