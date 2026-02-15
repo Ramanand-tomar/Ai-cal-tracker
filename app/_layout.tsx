@@ -62,7 +62,7 @@ function InitialLayout() {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="(main)/index" />
+      <Stack.Screen name="(main)" />
       <Stack.Screen name="(auth)/sign-in" />
       <Stack.Screen name="(auth)/sign-up" />
       <Stack.Screen name="(onboarding)/index" />
