@@ -4,34 +4,34 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import {
-  AiSettingIcon,
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-  Calendar01Icon,
-  HealthIcon,
-  HeightIcon,
-  UserIcon,
-  WeightIcon,
-  Work01Icon
+    AiSettingIcon,
+    ArrowLeft01Icon,
+    ArrowRight01Icon,
+    Calendar01Icon,
+    Dumbbell01Icon,
+    RulerIcon,
+    UserIcon,
+    WeightScaleIcon,
+    Sword01Icon
 } from "hugeicons-react-native";
 import React, { useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 // Mock icons for gender and goal if they don't exist in basic hugeicons
 const MaleIcon = UserIcon;
 const FemaleIcon = UserIcon;
-const GymIcon = HealthIcon;
+const GymIcon = Dumbbell01Icon;
 
 const { width } = Dimensions.get("window");
 
@@ -60,12 +60,32 @@ export default function Onboarding() {
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
   const updateProgress = (step: number) => {
-    Animated.timing(progress, {
+    Animated.spring(progress, {
       toValue: (step + 1) / STEPS.length,
-      duration: 300,
       useNativeDriver: false,
-    }).current.start();
+      friction: 8,
+      tension: 40
+    }).start();
+
+    // Reset and trigger entrance animation for new step content
+    fadeAnim.setValue(0);
+    slideAnim.setValue(20);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 8,
+      }),
+    ]).start();
   };
 
   React.useEffect(() => {
@@ -103,7 +123,6 @@ export default function Onboarding() {
       await AsyncStorage.setItem("user_onboarding", JSON.stringify(onboardingData));
 
       // 2. Navigate to AI generation screen with params
-      // We pass data as query params for simplicity in this flow
       router.push({
         pathname: "/(onboarding)/ai-generate",
         params: onboardingData
@@ -122,16 +141,20 @@ export default function Onboarding() {
     });
 
     return (
-      <View className="px-8 mt-4">
-        <View className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+      <View className="px-8 mt-8">
+        <View className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
           <Animated.View
             className="h-full bg-primary"
             style={{ width: progressWidth }}
           />
         </View>
-        <View className="flex-row justify-between mt-2">
-            <Text className="text-xs font-bold text-primary">STEP {currentStep + 1}</Text>
-            <Text className="text-xs font-medium text-gray-400">{currentStep + 1} of {STEPS.length}</Text>
+        <View className="flex-row justify-between mt-3">
+            <Text className="text-[10px] font-black text-primary uppercase tracking-widest">
+              Step {currentStep + 1}
+            </Text>
+            <Text className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              {Math.round(((currentStep + 1) / STEPS.length) * 100)}% Complete
+            </Text>
         </View>
       </View>
     );
@@ -141,34 +164,54 @@ export default function Onboarding() {
     title, 
     isSelected, 
     onPress, 
-    icon : Icon 
+    icon : IconComponent 
   }: { 
     title: string; 
     isSelected: boolean; 
     onPress: () => void; 
     icon: any 
-  }) => (
+  }) => {
+    const Icon = IconComponent || UserIcon;
+    return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      className={`flex-row items-center p-6 rounded-3xl mb-4 border-2 shadow-sm ${
+      style={{
+        shadowColor: isSelected ? Colors.light.primary : "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isSelected ? 0.1 : 0.05,
+        shadowRadius: 10,
+        elevation: 2,
+      }}
+      className={`flex-row items-center p-5 rounded-[24px] mb-4 border-2 ${
         isSelected 
-        ? "bg-primary-50 border-primary" 
-        : "bg-white border-gray-100"
+        ? "bg-white border-primary" 
+        : "bg-white border-transparent"
       }`}
     >
-      <View className={`w-12 h-12 rounded-2xl items-center justify-center ${
+      <View className={`w-14 h-14 rounded-2xl items-center justify-center ${
         isSelected ? "bg-primary" : "bg-gray-50"
       }`}>
-        <Icon size={24} color={isSelected ? "white" : "#9CA3AF"} />
+        <Icon size={26} color={isSelected ? "white" : "#6B7280"} />
       </View>
-      <Text className={`ml-4 text-lg font-bold ${
-        isSelected ? "text-primary-700" : "text-gray-700"
-      }`}>
-        {title}
-      </Text>
+      <View className="ml-4 flex-1">
+        <Text className={`text-lg font-bold ${
+          isSelected ? "text-gray-900" : "text-gray-700"
+        }`}>
+          {title}
+        </Text>
+        {isSelected && (
+          <Text className="text-primary text-xs font-bold mt-0.5">Selected</Text>
+        )}
+      </View>
+      {isSelected && (
+        <View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
+            <ArrowRight01Icon size={14} color="white" />
+        </View>
+      )}
     </TouchableOpacity>
   );
+};
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -200,7 +243,7 @@ export default function Onboarding() {
           <View className="pt-6">
             <OptionCard 
               title="Lose Weight" 
-              icon={WeightIcon} 
+              icon={WeightScaleIcon} 
               isSelected={goal === "lose"} 
               onPress={() => setGoal("lose")} 
             />
@@ -223,19 +266,19 @@ export default function Onboarding() {
           <View className="pt-6">
             <OptionCard 
               title="2-3 Days / Week" 
-              icon={Work01Icon} 
+              icon={Sword01Icon} 
               isSelected={workout === "2-3"} 
               onPress={() => setWorkout("2-3")} 
             />
             <OptionCard 
               title="3-4 Days / Week" 
-              icon={Work01Icon} 
+              icon={Sword01Icon} 
               isSelected={workout === "3-4"} 
               onPress={() => setWorkout("3-4")} 
             />
             <OptionCard 
               title="5-6 Days / Week" 
-              icon={HealthIcon} 
+              icon={GymIcon} 
               isSelected={workout === "5-6"} 
               onPress={() => setWorkout("5-6")} 
             />
@@ -280,7 +323,7 @@ export default function Onboarding() {
             <View>
               <Text className="text-sm font-bold text-gray-700 mb-2 ml-2">Height (Feet & Inches)</Text>
               <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-5 shadow-sm">
-                <HeightIcon size={24} color="#9CA3AF" />
+                <RulerIcon size={24} color="#9CA3AF" />
                 <TextInput
                   placeholder="e.g. 5.11"
                   placeholderTextColor="#9CA3AF"
@@ -296,7 +339,7 @@ export default function Onboarding() {
             <View className="mt-6">
               <Text className="text-sm font-bold text-gray-700 mb-2 ml-2">Weight (kg)</Text>
               <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-5 shadow-sm">
-                <WeightIcon size={24} color="#9CA3AF" />
+                <WeightScaleIcon size={24} color="#9CA3AF" />
                 <TextInput
                   placeholder="e.g. 70"
                   placeholderTextColor="#9CA3AF"
@@ -330,25 +373,42 @@ export default function Onboarding() {
     <SafeAreaView className="flex-1 bg-white">
       {renderProgress()}
 
-      <View className="flex-1 px-8 pt-10">
-        <View className="mb-8">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">{STEPS[currentStep].title}</Text>
-          <Text className="text-gray-500 font-medium text-lg leading-6">{STEPS[currentStep].description}</Text>
-        </View>
+      <View className="flex-1 px-8 pt-12">
+        <Animated.View 
+          style={{ 
+            opacity: fadeAnim, 
+            transform: [{ translateY: slideAnim }] 
+          }}
+          className="mb-10"
+        >
+          <Text className="text-4xl font-black text-gray-900 mb-2 leading-[48px]">
+            {STEPS[currentStep].title}
+          </Text>
+          <Text className="text-gray-400 font-bold text-lg leading-6">
+            {STEPS[currentStep].description}
+          </Text>
+        </Animated.View>
 
         <ScrollView 
           showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerStyle={{ paddingBottom: 40 }}
         >
-          {renderStepContent()}
+          <Animated.View
+             style={{ 
+                opacity: fadeAnim, 
+                transform: [{ translateY: slideAnim }] 
+              }}
+          >
+            {renderStepContent()}
+          </Animated.View>
         </ScrollView>
 
-        <View className="flex-row space-x-4 pb-10 pt-4 bg-white">
+        <View className="flex-row items-center space-x-4 pb-10 pt-4 bg-white">
           {currentStep > 0 && (
             <TouchableOpacity
               onPress={handleBack}
-              className="w-16 h-16 bg-gray-50 rounded-2xl items-center justify-center border border-gray-100"
+              className="w-16 h-16 bg-gray-50 rounded-3xl items-center justify-center border border-gray-100"
             >
               <ArrowLeft01Icon size={24} color="#111827" />
             </TouchableOpacity>
@@ -357,18 +417,25 @@ export default function Onboarding() {
           <TouchableOpacity
             onPress={handleNext}
             disabled={isNextDisabled() || loading}
-            className={`flex-1 h-16 rounded-2xl items-center justify-center flex-row shadow-lg ${
-              isNextDisabled() || loading ? "bg-primary-300" : "bg-primary shadow-primary-200"
+            className={`flex-1 h-16 rounded-[24px] items-center justify-center flex-row shadow-2xl ${
+              isNextDisabled() || loading ? "bg-gray-200" : "bg-primary"
             }`}
+            style={!(isNextDisabled() || loading) ? {
+              shadowColor: Colors.light.primary,
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.3,
+              shadowRadius: 15,
+              elevation: 8,
+            } : {}}
           >
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
               <>
-                <Text className="text-white font-bold text-lg mr-2">
-                  {currentStep === STEPS.length - 1 ? "Get Started" : "Continue"}
+                <Text className="text-white font-black text-lg mr-2 uppercase tracking-widest">
+                  {currentStep === STEPS.length - 1 ? "Finish" : "Next"}
                 </Text>
-                <ArrowRight01Icon size={24} color="white" />
+                <ArrowRight01Icon size={20} color="white" />
               </>
             )}
           </TouchableOpacity>

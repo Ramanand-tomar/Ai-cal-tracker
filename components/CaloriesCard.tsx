@@ -1,6 +1,6 @@
 import EditMacrosModal from "@/components/EditMacrosModal";
 import { SegmentedHalfCircleProgress30 } from "@/components/HalfProgress";
-import { Bread01Icon, Edit01Icon, NaturalFoodIcon, OrganicFoodIcon } from "hugeicons-react-native";
+import { Activity01Icon, Edit01Icon, FireIcon, MenuRestaurantIcon } from "hugeicons-react-native";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -76,7 +76,7 @@ export default function CaloriesCard({
           {/* Protein Card */}
           <View className="flex-1 bg-primary-50 p-4 rounded-2xl border border-primary-100/30 items-center">
             <View className="w-12 h-12 rounded-2xl bg-blue-100 items-center justify-center mb-3">
-              <NaturalFoodIcon size={24} color="#3b82f6" />
+              <Activity01Icon size={24} color="#3b82f6" />
             </View>
             <Text className="text-gray-500 text-[10px] font-bold uppercase mb-1">Protein left</Text>
             <Text className="text-gray-900 font-bold text-base">{proteinLeft}g</Text>
@@ -85,7 +85,7 @@ export default function CaloriesCard({
           {/* Carbs Card */}
           <View className="flex-1 bg-primary-50 p-4 rounded-2xl border border-primary-100/30 items-center">
             <View className="w-12 h-12 rounded-2xl bg-orange-100 items-center justify-center mb-3">
-              <Bread01Icon size={24} color="#f97316" />
+              <MenuRestaurantIcon size={24} color="#f97316" />
             </View>
             <Text className="text-gray-500 text-[10px] font-bold uppercase mb-1">Carbs left</Text>
             <Text className="text-gray-900 font-bold text-base">{carbsLeft}g</Text>
@@ -94,7 +94,7 @@ export default function CaloriesCard({
           {/* Fat Card */}
           <View className="flex-1 bg-primary-50 p-4 rounded-2xl border border-primary-100/30 items-center">
             <View className="w-12 h-12 rounded-2xl bg-yellow-100 items-center justify-center mb-3">
-              <OrganicFoodIcon size={24} color="#eab308" />
+              <FireIcon size={24} color="#eab308" />
             </View>
             <Text className="text-gray-500 text-[10px] font-bold uppercase mb-1">Fat left</Text>
             <Text className="text-gray-900 font-bold text-base">{fatLeft}g</Text>

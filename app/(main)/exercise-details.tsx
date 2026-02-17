@@ -5,19 +5,19 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import {
-  ArrowLeft01Icon,
+    ArrowLeft01Icon,
 } from 'hugeicons-react-native';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -69,7 +69,7 @@ export default function ExerciseDetailsScreen() {
 
       // 3. Navigate to Summary
       router.push({
-        pathname: '/(main)/workout-summary',
+        pathname: '/workout-summary',
         params: {
           calories,
           duration: durationNum,
@@ -93,7 +93,7 @@ export default function ExerciseDetailsScreen() {
         <Text style={styles.headerSubtitle}>{description || 'Set your intensity and duration.'}</Text>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.push('/(main)/log-exercise')}
+          onPress={() => router.push('/log-exercise')}
         >
           <ArrowLeft01Icon size={24} color="#6B7280" />
           <Text style={styles.backButtonText}>Back</Text>

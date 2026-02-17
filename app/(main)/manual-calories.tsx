@@ -4,20 +4,20 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import {
-  ArrowLeft01Icon,
-  FireIcon,
+    ArrowLeft01Icon,
+    FireIcon,
 } from 'hugeicons-react-native';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 export default function ManualCaloriesScreen() {
@@ -40,7 +40,7 @@ export default function ManualCaloriesScreen() {
     setLoading(true);
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA');
       
       await addDoc(collection(db, 'dailyLogs'), {
         userId,
@@ -52,7 +52,7 @@ export default function ManualCaloriesScreen() {
       });
 
       console.log('Calories logged successfully');
-      router.push('/(main)');
+      router.push('/');
     } catch (error) {
       console.error('Error logging calories:', error);
       Alert.alert('Error', 'Failed to log exercise. Please try again.');
@@ -68,7 +68,7 @@ export default function ManualCaloriesScreen() {
         <Text style={styles.headerSubtitle}>Enter calories burned manually</Text>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.push('/(main)/log-exercise')}
+          onPress={() => router.push('/log-exercise')}
         >
           <ArrowLeft01Icon size={24} color="#6B7280" />
           <Text style={styles.backButtonText}>Back</Text>

@@ -1,6 +1,6 @@
 
 import { Colors } from "@/constants/Colors";
-import { Activity01Icon, Bread01Icon, Cancel01Icon, NaturalFoodIcon, OrganicFoodIcon } from "hugeicons-react-native";
+import { Activity01Icon, Cancel01Icon, FireIcon, MenuRestaurantIcon } from "hugeicons-react-native";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -73,7 +73,7 @@ export default function EditMacrosModal({ isVisible, onClose, onSave, initialVal
               {/* Protein */}
               <View style={styles.inputContainer}>
                 <View style={[styles.iconWrapper, { backgroundColor: '#eff6ff' }]}>
-                  <NaturalFoodIcon size={20} color="#3b82f6" />
+                  <Activity01Icon size={20} color="#3b82f6" />
                 </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>Protein Goal (g)</Text>
@@ -90,7 +90,7 @@ export default function EditMacrosModal({ isVisible, onClose, onSave, initialVal
               {/* Carbs */}
               <View style={styles.inputContainer}>
                 <View style={[styles.iconWrapper, { backgroundColor: '#fff7ed' }]}>
-                  <Bread01Icon size={20} color="#f97316" />
+                  <MenuRestaurantIcon size={20} color="#f97316" />
                 </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>Carbs Goal (g)</Text>
@@ -107,7 +107,7 @@ export default function EditMacrosModal({ isVisible, onClose, onSave, initialVal
               {/* Fat */}
               <View style={styles.inputContainer}>
                 <View style={[styles.iconWrapper, { backgroundColor: '#fefce8' }]}>
-                  <OrganicFoodIcon size={20} color="#eab308" />
+                  <FireIcon size={20} color="#eab308" />
                 </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>Fat Goal (g)</Text>

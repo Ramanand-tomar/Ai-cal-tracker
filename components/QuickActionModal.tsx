@@ -1,22 +1,24 @@
 import Colors from '@/constants/Colors';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import {
-  Camera01Icon,
-  Cancel01Icon,
-  CrownIcon,
-  DropletIcon,
-  Dumbbell01Icon,
-  MenuRestaurantIcon
+    Camera01Icon,
+    Cancel01Icon,
+    CrownIcon,
+    DropletIcon,
+    Dumbbell01Icon,
+    MenuRestaurantIcon
 } from 'hugeicons-react-native';
 import React from 'react';
 import {
-  Dimensions,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    Alert,
+    Dimensions,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
 
 interface QuickActionModalProps {
@@ -30,13 +32,61 @@ const GAP = 32;
 
 export default function QuickActionModal({ isVisible, onClose }: QuickActionModalProps) {
   const router = useRouter();
+  const [isSelectionVisible, setIsSelectionVisible] = React.useState(false);
 
   const handleAction = (route: string) => {
     onClose();
-    if (route === '/(main)/log-exercise' || route === '/(main)/plus') {
+    if (route === '/(main)/log-exercise' || route === '/(main)/plus' || route === '/(main)/water-intake' || route === '/(main)/food-search') {
         router.push(route);
     } else {
         console.log(`Navigating to: ${route}`);
+    }
+  };
+
+  const handleScanFood = () => {
+    setIsSelectionVisible(true);
+  };
+
+  const pickImage = async (useCamera: boolean) => {
+    try {
+      let result;
+      if (useCamera) {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert("Permission Denied", "We need camera access to scan your food.");
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      } else {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert("Permission Denied", "We need gallery access to select food photos.");
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      }
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setIsSelectionVisible(false);
+        onClose();
+        router.push({
+          pathname: "/(main)/ai-analysis",
+          params: { imageUri: result.assets[0].uri }
+        });
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image.");
     }
   };
 
@@ -97,7 +147,7 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
                     icon={DropletIcon}
                     color={Colors.light.primary}
                     bgColor={Colors.light.primaryLight}
-                    onPress={() => handleAction('/(main)/index')} 
+                    onPress={() => handleAction('/(main)/water-intake')} 
                   />
                 </View>
                 <View style={styles.row}>
@@ -106,7 +156,7 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
                     icon={MenuRestaurantIcon}
                     color="#F97316"
                     bgColor="#FFF7ED"
-                    onPress={() => handleAction('/(main)/plus')}
+                    onPress={() => handleAction('/(main)/food-search')}
                   />
                   <ActionButton 
                     title="Scan Food"
@@ -114,7 +164,7 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
                     color="#8B5CF6"
                     bgColor="#F5F3FF"
                     isPremium={true}
-                    onPress={() => console.log('Premium option clicked')}
+                    onPress={handleScanFood}
                   />
                 </View>
               </View>
@@ -128,6 +178,54 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
+
+      {/* Premium Image Selection Dialog */}
+      <Modal
+        visible={isSelectionVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsSelectionVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setIsSelectionVisible(false)}>
+          <View style={styles.selectionOverlay}>
+            <View style={styles.selectionContent}>
+              <View style={styles.selectionHeader}>
+                <Text style={styles.selectionTitle}>Scan Food</Text>
+                <Text style={styles.selectionSubtitle}>Select how you want to add your photo</Text>
+              </View>
+
+              <View style={styles.selectionOptions}>
+                <TouchableOpacity 
+                  style={styles.selectionOption} 
+                  onPress={() => pickImage(true)}
+                >
+                  <View style={[styles.optionIconBox, { backgroundColor: '#F5F3FF' }]}>
+                    <Camera01Icon size={32} color="#8B5CF6" />
+                  </View>
+                  <Text style={styles.optionText}>Take Photo</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.selectionOption} 
+                  onPress={() => pickImage(false)}
+                >
+                  <View style={[styles.optionIconBox, { backgroundColor: '#F0F9FF' }]}>
+                    <MenuRestaurantIcon size={32} color="#0EA5E9" />
+                  </View>
+                  <Text style={styles.optionText}>Gallery</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity 
+                style={styles.cancelBtn} 
+                onPress={() => setIsSelectionVisible(false)}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </Modal>
   );
 }
@@ -203,5 +301,70 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  selectionOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  selectionContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 32,
+    paddingBottom: 50,
+  },
+  selectionHeader: {
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  selectionTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  selectionSubtitle: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  selectionOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 32,
+  },
+  selectionOption: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  optionIconBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  optionText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  cancelBtn: {
+    backgroundColor: '#F1F5F9',
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#64748B',
   },
 });

@@ -37,10 +37,10 @@ export default function LogExerciseScreen() {
       activeOpacity={0.7}
       onPress={() => {
         if (title === 'Manual') {
-          router.push('/(main)/manual-calories');
+          router.push('/manual-calories');
         } else {
           router.push({
-            pathname: '/(main)/exercise-details',
+            pathname: '/exercise-details',
             params: { type: title, description: description }
           });
         }

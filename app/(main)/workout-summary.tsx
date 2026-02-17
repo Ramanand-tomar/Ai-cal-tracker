@@ -6,13 +6,13 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { FireIcon } from 'hugeicons-react-native';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function WorkoutSummaryScreen() {
@@ -45,7 +45,7 @@ export default function WorkoutSummaryScreen() {
       });
 
       console.log('Workout logged successfully');
-      router.push('/(main)');
+      router.push('/');
     } catch (error) {
       console.error('Error logging workout:', error);
       Alert.alert('Error', 'Failed to log workout. Please try again.');
@@ -62,7 +62,7 @@ export default function WorkoutSummaryScreen() {
 
         <View style={styles.fireContainer}>
           <View style={styles.iconCircle}>
-            <FireIcon size={64} color="#F97316" variant="solid" />
+            <FireIcon size={64} color="#F97316" variant="stroke" />
           </View>
           <Text style={styles.burnedLabel}>Your Workout Burned</Text>
           <Text style={styles.calorieValue}>{calories}</Text>

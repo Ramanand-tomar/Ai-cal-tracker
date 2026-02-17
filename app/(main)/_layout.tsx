@@ -77,6 +77,50 @@ export default function MainLayout() {
             tabBarStyle: { display: 'none' },
           }}
         />
+
+        <Tabs.Screen
+          name="water-intake"
+          options={{
+            href: null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+
+        <Tabs.Screen
+          name="food-search"
+          options={{
+            href: null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tabs.Screen
+          name="log-food"
+          options={{
+            href: null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tabs.Screen
+          name="ai-analysis"
+          options={{
+            href: null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tabs.Screen
+          name="ai-result"
+          options={{
+            href: null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tabs.Screen
+          name="update-weight"
+          options={{
+            href: null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
       </Tabs>
 
       <QuickActionModal 

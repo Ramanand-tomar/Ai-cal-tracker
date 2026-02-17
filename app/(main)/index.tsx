@@ -1,5 +1,6 @@
 import CaloriesCard from "@/components/CaloriesCard";
 import HomeHeader from "@/components/HomeHeader";
+import InsightCard from "@/components/InsightCard";
 import RecentActivity, { Activity } from "@/components/RecentActivity";
 import WaterIntakeCard from "@/components/WaterIntakeCard";
 import WeeklyCalendar from "@/components/WeeklyCalendar";
@@ -7,7 +8,7 @@ import { db } from "@/config/firebaseConfig";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { startOfToday } from "date-fns";
 import { Redirect, useFocusEffect } from "expo-router";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { Logout01Icon } from "hugeicons-react-native";
 import React, { useCallback, useState } from "react";
 import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -25,15 +26,44 @@ export default function Index() {
     carbs: 250,
     fat: 70,
     waterGoal: 2.5,
-    waterConsumed: 1.35,
+    waterConsumed: 0,
+    consumed: 0,
+    proteinConsumed: 0,
+    carbsConsumed: 0,
+    fatConsumed: 0,
+    burned: 0,
+    insight: "",
   });
+
+  const fetchUserProfile = async () => {
+    if (!user?.id) return;
+    try {
+      const userRef = doc(db, "users", user.id);
+      const userSnap = await getDoc(userRef);
+      
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        setGoals(prev => ({
+          ...prev,
+          total: data.dailyCalories || prev.total,
+          protein: data.protein || prev.protein,
+          carbs: data.carbs || prev.carbs,
+          fat: data.fats || prev.fat,
+          waterGoal: data.waterIntake || prev.waterGoal,
+          insight: data.insight || "",
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
 
   const fetchDailyLogs = async () => {
     if (!user?.id) return;
     
     setLoading(true);
     try {
-      const dateString = selectedDate.toISOString().split('T')[0];
+      const dateString = selectedDate.toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
       const q = query(
         collection(db, 'dailyLogs'),
         where('userId', '==', user.id),
@@ -41,8 +71,13 @@ export default function Index() {
       );
 
       const querySnapshot = await getDocs(q);
-      const logs = [];
+      const logs:any[] = [];
+      let totalCaloriesConsumed = 0;
       let totalCaloriesBurned = 0;
+      let totalWaterConsumed = 0;
+      let totalProteinConsumed = 0;
+      let totalCarbsConsumed = 0;
+      let totalFatConsumed = 0;
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -53,16 +88,24 @@ export default function Index() {
         
         if (data.type === 'exercise') {
           totalCaloriesBurned += data.calories || 0;
+        } else if (data.type === 'water') {
+          totalWaterConsumed += data.amount || 0;
+        } else if (data.type === 'meal') {
+           totalCaloriesConsumed += data.calories || 0; 
+           totalProteinConsumed += data.protein || 0;
+           totalCarbsConsumed += data.carbs || 0;
+           totalFatConsumed += data.fat || 0;
         }
       });
 
-      // Update goals with consumed calories (burned in this case, but using consumed prop for visual)
       setGoals(prev => ({
         ...prev,
-        // For now, mapping burned calories to 'consumed' visual on the card
-        // In a real app, you might want to separate consumed (food) vs burned (exercise)
-        // or net calories. Here we'll treat it as "calories tracked"
-        consumed: totalCaloriesBurned 
+        consumed: totalCaloriesConsumed,
+        burned: totalCaloriesBurned, // We should add 'burned' to goals state if possible, or just use it in remaining
+        proteinConsumed: totalProteinConsumed,
+        carbsConsumed: totalCarbsConsumed,
+        fatConsumed: totalFatConsumed,
+        waterConsumed: totalWaterConsumed / 1000 
       }));
 
       // Map logs to activities format
@@ -70,7 +113,13 @@ export default function Index() {
         let title = 'Activity';
         let subtitle = 'Logged item';
         
-        if (log.exerciseType === 'Manual') {
+        if (log.type === 'water') {
+          title = 'Water';
+          subtitle = `${log.amount} ml`;
+        } else if (log.type === 'meal') {
+          title = log.title || 'Meal';
+          subtitle = log.serving_amount ? `${log.serving_amount} serving` : 'Food Log';
+        } else if (log.exerciseType === 'Manual') {
           title = 'Manual Entry';
           subtitle = 'Calories burned';
         } else if (log.type === 'exercise') {
@@ -83,6 +132,8 @@ export default function Index() {
         if (log.timestamp) {
           const date = log.timestamp.toDate();
           time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else if (log.time) {
+          time = log.time;
         }
 
         return {
@@ -91,8 +142,9 @@ export default function Index() {
           exerciseType: log.exerciseType,
           title,
           subtitle,
-          value: `${log.calories} kcal`,
-          calories: log.calories,
+          value: log.type === 'water' ? `${log.amount} ml` : `${log.calories} kcal`,
+          calories: log.calories || 0,
+          amount: log.amount || 0,
           duration: log.duration,
           intensity: log.intensity,
           time
@@ -116,6 +168,7 @@ export default function Index() {
 
   useFocusEffect(
     useCallback(() => {
+      fetchUserProfile();
       fetchDailyLogs();
     }, [user?.id, selectedDate])
   );
@@ -136,12 +189,12 @@ export default function Index() {
       >
         <View className="mt-8">
           <CaloriesCard 
-            remaining={goals.total - goals.consumed}
+            remaining={Math.max(0, goals.total - goals.consumed + goals.burned)}
             total={goals.total}
-            consumed={goals.consumed} // This now reflects fetched data
-            protein={45} // Still mock for now
-            carbs={65}
-            fat={22}
+            consumed={goals.consumed} 
+            protein={goals.proteinConsumed}
+            carbs={goals.carbsConsumed}
+            fat={goals.fatConsumed}
             proteinGoal={goals.protein}
             carbsGoal={goals.carbs}
             fatGoal={goals.fat}
@@ -167,6 +220,8 @@ export default function Index() {
               });
             }}
           />
+
+          <InsightCard insight={goals.insight} />
 
           <RecentActivity activities={activities} />
 
