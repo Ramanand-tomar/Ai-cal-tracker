@@ -29,7 +29,6 @@ import {
     KeyboardAvoidingView,
     Modal,
     Platform,
-    SafeAreaView,
     StyleSheet,
     Text,
     TextInput,
@@ -37,6 +36,7 @@ import {
     View
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface FeatureRequest {
     id: string;

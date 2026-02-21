@@ -19,6 +19,7 @@ import {
 } from "hugeicons-react-native";
 import React, { useEffect, useState } from "react";
 import {
+    Alert,
     Platform,
     SafeAreaView,
     StyleSheet,
