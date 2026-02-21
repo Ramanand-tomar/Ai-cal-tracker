@@ -42,7 +42,7 @@ export default function WaterIntakeCard({ consumedLiters, goalLiters, onUpdateWa
   return (
     <View 
       style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-      className="p-6 rounded-[32px] border shadow-sm mt-6"
+      className="p-6 rounded-[32px] border shadow-sm"
     >
       <View className="flex-row justify-between items-center mb-6">
         <View>

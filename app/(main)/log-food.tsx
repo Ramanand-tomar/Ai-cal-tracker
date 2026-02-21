@@ -1,8 +1,10 @@
 import AppLoader from "@/components/ui/AppLoader";
 import BackButton from "@/components/ui/BackButton";
+import { db } from "@/config/firebaseConfig";
 import { useTheme } from "@/context/ThemeContext";
 import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import {
     Calendar01Icon,
     Clock01Icon,
@@ -44,14 +46,33 @@ export default function LogFoodScreen() {
     const calories = initialCalories ? Math.round(Number(initialCalories) * Number(quantity || 0)) : 0;
 
     const handleLogFood = async () => {
+        if (!user) return;
         setLoading(true);
-        // Simulate logging
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const today = new Date().toLocaleDateString('en-CA');
+            await addDoc(collection(db, "dailyLogs"), {
+                userId: user.id,
+                type: 'meal',
+                title: name,
+                calories: calories,
+                protein: Math.round(Number(protein) * Number(quantity || 0)),
+                carbs: Math.round(Number(carbs) * Number(quantity || 0)),
+                fat: Math.round(Number(fats) * Number(quantity || 0)),
+                serving_amount: `${quantity} ${servingSize}`,
+                mealType: mealType,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: serverTimestamp(),
+                date: today,
+            });
             Alert.alert("Success", `${name} has been logged!`, [
                 { text: "OK", onPress: () => router.replace("/(main)") }
             ]);
-        }, 1000);
+        } catch (error) {
+            console.error("Error logging food:", error);
+            Alert.alert("Error", "Failed to log food. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const mealTypes = ["Breakfast", "Lunch", "Dinner", "Snack"];

@@ -83,9 +83,9 @@ export default function WeeklyCalendar({ onDateSelect, selectedDate }: WeeklyCal
   };
 
   return (
-    <View style={{ backgroundColor: colors.background }} className="py-2">
+    <View style={{ backgroundColor: colors.background }} className="pt-1 pb-3">
       {/* Calendar Header */}
-      <View className="flex-row items-center justify-between px-6 mb-4">
+      <View className="flex-row items-center justify-between px-6 mb-2">
         <Text style={{ color: colors.text }} className="text-lg font-bold">
           {format(weekStart, "MMMM yyyy")}
         </Text>
@@ -113,6 +113,9 @@ export default function WeeklyCalendar({ onDateSelect, selectedDate }: WeeklyCal
       <View className="flex-row px-6 justify-between">
         {days.map(renderDay)}
       </View>
+
+      {/* Subtle separator */}
+      <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9', height: 1, marginHorizontal: 24, marginTop: 8 }} />
     </View>
   );
 }

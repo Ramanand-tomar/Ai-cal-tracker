@@ -219,9 +219,9 @@ export default function Index() {
       <ScrollView 
         className="flex-1 px-6"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 150 }}
+        contentContainerStyle={{ paddingBottom: 120, paddingTop: 12 }}
       >
-        <View className="mt-8">
+        <View style={{ gap: 16 }}>
           <CaloriesCard 
             remaining={Math.max(0, goals.total - goals.consumed + goals.burned)}
             total={goals.total}
@@ -268,14 +268,14 @@ export default function Index() {
             activities={activities}
           />
 
-          {/* Sign Out Button for Testing */}
+          {/* Sign Out */}
           <TouchableOpacity
             onPress={() => signOut()}
-            style={{ backgroundColor: isDark ? colors.surface : colors.border, borderColor: colors.border }}
-            className="py-4 rounded-2xl flex-row items-center justify-center mt-12 border"
+            style={{ backgroundColor: isDark ? colors.surface : '#F8FAFC', borderColor: colors.border }}
+            className="py-3.5 rounded-2xl flex-row items-center justify-center mt-6 border"
           >
-            <Logout01Icon size={20} color={colors.textSecondary} />
-            <Text style={{ color: colors.textSecondary }} className="font-bold ml-2">Sign Out</Text>
+            <Logout01Icon size={18} color={colors.textMuted} />
+            <Text style={{ color: colors.textMuted }} className="font-semibold text-sm ml-2">Sign Out</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

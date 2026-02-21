@@ -17,7 +17,7 @@ export default function InsightCard({ insight }: InsightCardProps) {
         backgroundColor: isDark ? 'rgba(41, 143, 80, 0.1)' : colors.primaryLight,
         borderColor: isDark ? 'rgba(41, 143, 80, 0.2)' : 'rgba(41, 143, 80, 0.3)'
       }}
-      className="p-6 rounded-[32px] border mt-6 overflow-hidden relative"
+      className="p-6 rounded-[32px] border overflow-hidden relative"
     >
       {/* Decorative Sparkle */}
       <View className="absolute -top-2 -right-2 opacity-10">

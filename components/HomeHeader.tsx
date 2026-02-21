@@ -9,7 +9,7 @@ export default function HomeHeader() {
   const { colors, isDark } = useTheme();
 
   return (
-    <View style={{ backgroundColor: colors.background }} className="flex-row items-center justify-between px-6 py-4 mt-12">
+    <View style={{ backgroundColor: colors.background }} className="flex-row items-center justify-between px-6 py-3">
       <View className="flex-row items-center">
         {user?.imageUrl ? (
           <Image
@@ -24,8 +24,8 @@ export default function HomeHeader() {
             </Text>
           </View>
         )}
-        <View className="ml-4">
-          <Text style={{ color: colors.textSecondary }} className="font-medium text-sm">Welcome back 👋</Text>
+        <View className="ml-3">
+          <Text style={{ color: colors.textSecondary }} className="font-semibold text-sm">Welcome back 👋</Text>
           <Text style={{ color: colors.text }} className="font-bold text-xl">
             {user?.firstName || "User"}
           </Text>
@@ -35,7 +35,7 @@ export default function HomeHeader() {
       <TouchableOpacity
         activeOpacity={0.7}
         style={{ backgroundColor: isDark ? colors.surface : '#F8FAFC', borderColor: colors.border }}
-        className="w-10 h-10 rounded-full items-center justify-center border"
+        className="w-11 h-11 rounded-xl items-center justify-center border"
       >
         <Notification01Icon size={22} color={colors.text} />
         {/* Subtle indicator for notifications */}

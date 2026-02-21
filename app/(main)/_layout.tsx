@@ -3,7 +3,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { Tabs } from "expo-router";
 import { Add01Icon, Analytics01Icon, Home01Icon, UserIcon } from "hugeicons-react-native";
 import React, { useState } from "react";
-import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function MainLayout() {
   const [isQuickActionVisible, setIsQuickActionVisible] = useState(false);
@@ -197,23 +197,25 @@ const PlusButton = ({ onPress }: { onPress: () => void }) => {
 const styles = StyleSheet.create({
   tabBar: {
     position: "absolute",
-    bottom: 30,
-    left: 20,
-    right: 20,
-    borderRadius: 30,
-    height: 70,
-    paddingBottom: Platform.OS === "ios" ? 0 : 0,
+    bottom: 28,
+    left: 24,
+    right: 24,
+    borderRadius: 28,
+    marginHorizontal:8,
+    height: 68,
+    paddingHorizontal:8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 8,
     borderTopWidth: 0,
     flexDirection: "row",
     alignItems: "center",
   },
   plusButtonContainer: {
-    top: -15,
-    paddingHorizontal: 8,
+    top: -10,
+    alignSelf: "center",
+    paddingHorizontal: 6,
   }
 });
