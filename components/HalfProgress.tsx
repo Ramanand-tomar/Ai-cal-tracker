@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
@@ -22,6 +22,7 @@ export function SegmentedHalfCircleProgress30({
     value,
     label,
 }: Props) {
+    const { colors, isDark } = useTheme();
     const clamped = Math.max(0, Math.min(1, progress));
 
     const radius = (size - strokeWidth) / 2;
@@ -31,7 +32,6 @@ export function SegmentedHalfCircleProgress30({
     const totalAngle = 180;
     const totalGap = gapAngle * (segments - 1);
 
-    // ⬇ slightly reduce angle to avoid edge overlap
     const segmentAngle = (totalAngle - totalGap) / segments;
 
     const activeSegments = Math.round(clamped * segments);
@@ -56,7 +56,6 @@ export function SegmentedHalfCircleProgress30({
 
     let currentAngle = 180;
 
-    // Add extra height to prevent stroke clipping
     const extraHeight = strokeWidth / 2;
 
     return (
@@ -73,7 +72,7 @@ export function SegmentedHalfCircleProgress30({
                         <Path
                             key={i}
                             d={createArc(start, end)}
-                            stroke={isActive ? Colors.light.primary : "#E5E7EB"}
+                            stroke={isActive ? colors.primary : (isDark ? colors.surface : "#E5E7EB")}
                             strokeWidth={strokeWidth}
                             fill="none"
                             strokeLinecap="butt"
@@ -83,8 +82,8 @@ export function SegmentedHalfCircleProgress30({
             </Svg>
             <View style={[styles.textOverlay, { bottom: extraHeight - 5 }]}>
                 <Text style={styles.emojiText}>🔥</Text>
-                <Text style={styles.mainText}>{value}</Text>
-                <Text style={styles.subText}>{label}</Text>
+                <Text style={[styles.mainText, { color: colors.text }]}>{value}</Text>
+                <Text style={[styles.subText, { color: colors.textSecondary }]}>{label}</Text>
             </View>
         </View>
     );
@@ -103,10 +102,8 @@ const styles = StyleSheet.create({
     mainText: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#000',
     },
     subText: {
         fontSize: 14,
-        color: '#666',
     }
 });

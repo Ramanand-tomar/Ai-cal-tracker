@@ -1,24 +1,33 @@
 import ProfileCard from '@/components/profile/ProfileCard';
 import ProfileOption from '@/components/profile/ProfileOption';
 import TrialCard from '@/components/profile/TrialCard';
+import AppLoader from '@/components/ui/AppLoader';
 import Colors from '@/constants/Colors';
+import { useTheme } from '@/context/ThemeContext';
+import { useUserData } from '@/context/UserContext';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import {
-  CustomerService01Icon,
-  DocumentAttachmentIcon,
-  Logout01Icon,
-  Settings02Icon,
-  Shield01Icon,
-  UserCircleIcon,
-  ZapIcon
+    CustomerService01Icon,
+    DocumentAttachmentIcon,
+    Logout01Icon,
+    Moon02Icon,
+    Settings01Icon,
+    Settings02Icon,
+    Shield01Icon,
+    Sun01Icon,
+    UserCircleIcon,
+    ZapIcon
 } from 'hugeicons-react-native';
 import React from 'react';
-import { Alert, Image, Linking, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Profile() {
   const router = useRouter();
   const { signOut } = useAuth();
+  const { theme, isDark, colors, setTheme } = useTheme();
+  const { userData, loading: userLoading } = useUserData();
 
   const handleLogout = () => {
     Alert.alert(
@@ -37,30 +46,60 @@ export default function Profile() {
       ]
     );
   };
+
+  const toggleTheme = () => {
+    Alert.alert(
+      "Appearance",
+      "Choose your preferred theme",
+      [
+        { text: "Light", onPress: () => setTheme('light') },
+        { text: "Dark", onPress: () => setTheme('dark') },
+        { text: "System", onPress: () => setTheme('system') },
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
+  };
+
+  const getThemeIcon = () => {
+    if (theme === 'system') return <Settings01Icon size={20} color={colors.textSecondary} variant="stroke" />;
+    return isDark ? 
+      <Moon02Icon size={20} color="#818CF8" variant="stroke" /> : 
+      <Sun01Icon size={20} color="#F59E0B" variant="stroke" />;
+  };
   
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
 
         {/* User Info Card */}
-        <View style={styles.userInfoCard}>
-          <View style={styles.avatarWrapper}>
-            <Image 
-              source={{ uri: 'https://avatar.iran.liara.run/public/30' }} 
-              style={styles.avatar} 
-            />
-            <View style={styles.editBadge}>
-               <UserCircleIcon size={12} color="white" variant="stroke" />
-            </View>
-          </View>
-          <View style={styles.userTextContent}>
-            <Text style={styles.userName}>Ramanand Tomar</Text>
-            <Text style={styles.userEmail}>ramanand@example.com</Text>
-          </View>
+        <View style={[styles.userInfoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          {userLoading ? (
+            <AppLoader size={40} />
+          ) : (
+            <>
+              <View style={styles.avatarWrapper}>
+                <Image 
+                  source={{ uri: userData?.imageUrl || 'https://avatar.iran.liara.run/public/30' }} 
+                  style={[styles.avatar, { backgroundColor: isDark ? colors.background : '#F1F5F9' }]} 
+                />
+                <View style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.surface }]}>
+                  <UserCircleIcon size={12} color="white" variant="stroke" />
+                </View>
+              </View>
+              <View style={styles.userTextContent}>
+                <Text style={[styles.userName, { color: colors.text }]}>
+                  {userData?.fullName || userData?.firstName || 'User'}
+                </Text>
+                <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
+                  {userData?.email || 'No email provided'}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Free Trial Section */}
@@ -74,7 +113,12 @@ export default function Profile() {
             onPress={() => router.push('/(main)/personal-details')}
           />
           <ProfileOption 
-            icon={<Settings02Icon size={20} color="#64748B" variant="stroke" />} 
+            icon={getThemeIcon()} 
+            label={`Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`} 
+            onPress={toggleTheme}
+          />
+          <ProfileOption 
+            icon={<Settings02Icon size={20} color={isDark ? colors.textMuted : "#64748B"} variant="stroke" />} 
             label="Preferences" 
             onPress={() => router.push('/(main)/preferences')}
           />
@@ -96,15 +140,15 @@ export default function Profile() {
           <ProfileOption 
             icon={<CustomerService01Icon size={20} color="#3B82F6" variant="stroke" />} 
             label="Contact Us" 
-            onPress={() => Linking.openURL('mailto:ramanandtomar1234@gmail.com?subject=AI Cal Tracker Support&body=Hello Support Team,')}
+            onPress={() => Linking.openURL('mailto:ramanandtomar1234@gmail.com?subject=Calorify AI Support&body=Hello Support Team,')}
           />
           <ProfileOption  
-            icon={<DocumentAttachmentIcon size={20} color="#64748B" variant="stroke" />} 
+            icon={<DocumentAttachmentIcon size={20} color={isDark ? colors.textMuted : "#64748B"} variant="stroke" />} 
             label="Terms and condition" 
             onPress={() => router.push('/(main)/terms-conditions')}
           />
           <ProfileOption 
-            icon={<Shield01Icon size={20} color="#64748B" variant="stroke" />} 
+            icon={<Shield01Icon size={20} color={isDark ? colors.textMuted : "#64748B"} variant="stroke" />} 
             label="Privacy Policy" 
             isLast={true}
             onPress={() => router.push('/(main)/privacy-policy')}
@@ -114,21 +158,24 @@ export default function Profile() {
         {/* Logout Button */}
         <TouchableOpacity 
           activeOpacity={0.7}
-          style={styles.logoutBtn}
+          style={[styles.logoutBtn, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#FEF2F2' }]}
           onPress={handleLogout}
         >
-          <View style={styles.logoutIconBg}>
+          <View style={[styles.logoutIconBg, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2' }]}>
             <Logout01Icon size={20} color="#EF4444" variant="stroke" />
           </View>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
         {/* Version Info */}
-        <Text style={styles.versionText}>Version 1.0.0 (Build 124)</Text>
+        <Text style={[styles.versionText, { color: colors.textMuted }]}>
+          Version 1.0.0 (created By Ramanand Tomar)
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

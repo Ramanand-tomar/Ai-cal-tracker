@@ -1,3 +1,4 @@
+import AppLoader from "@/components/ui/AppLoader";
 import Colors from "@/constants/Colors";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -10,23 +11,22 @@ import {
     Calendar01Icon,
     Dumbbell01Icon,
     RulerIcon,
+    Sword01Icon,
     UserIcon,
-    WeightScaleIcon,
-    Sword01Icon
+    WeightScaleIcon
 } from "hugeicons-react-native";
 import React, { useRef, useState } from "react";
 import {
-    ActivityIndicator,
     Animated,
     Dimensions,
     Platform,
-    SafeAreaView,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Mock icons for gender and goal if they don't exist in basic hugeicons
 const MaleIcon = UserIcon;
@@ -429,7 +429,7 @@ export default function Onboarding() {
             } : {}}
           >
             {loading ? (
-              <ActivityIndicator color="white" />
+              <AppLoader size={30} />
             ) : (
               <>
                 <Text className="text-white font-black text-lg mr-2 uppercase tracking-widest">

@@ -1,5 +1,5 @@
 
-import { Colors } from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { Cancel01Icon, DropletIcon, RainDropIcon } from "hugeicons-react-native";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -15,8 +15,9 @@ interface EditWaterModalProps {
 }
 
 export default function EditWaterModal({ isVisible, onClose, onSave, initialValues }: EditWaterModalProps) {
-  const [waterGoal, setWaterGoal] = useState(initialValues.waterGoal.toString());
-  const [waterConsumed, setWaterConsumed] = useState(initialValues.waterConsumed.toString());
+  const { colors, isDark } = useTheme();
+  const [waterGoal, setWaterGoal] = useState(initialValues.waterGoal.toFixed(1));
+  const [waterConsumed, setWaterConsumed] = useState(initialValues.waterConsumed.toFixed(1));
 
   const handleSave = () => {
     onSave({
@@ -38,44 +39,46 @@ export default function EditWaterModal({ isVisible, onClose, onSave, initialValu
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
             {/* Header */}
             <View style={styles.header}>
               <View>
-                <Text style={styles.title}>Edit Water Intake</Text>
-                <Text style={styles.subtitle}>Set your daily goal and track progress</Text>
+                <Text style={[styles.title, { color: colors.text }]}>Edit Water Intake</Text>
+                <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Set your daily goal and track progress</Text>
               </View>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Cancel01Icon size={24} color="#6B7280" />
+                <Cancel01Icon size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* Inputs */}
             <View style={styles.inputsContainer}>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Daily Goal (Liters)</Text>
-                <View style={styles.inputWrapper}>
-                  <DropletIcon size={20} color={Colors.light.primary} />
+                <Text style={[styles.label, { color: colors.textSecondary }]}>Daily Goal (Liters)</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: isDark ? colors.surface : "#F3F4F6" }]}>
+                  <DropletIcon size={20} color={colors.primary} />
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: colors.text }]}
                     value={waterGoal}
                     onChangeText={setWaterGoal}
                     keyboardType="numeric"
                     placeholder="e.g. 2.5"
+                    placeholderTextColor={colors.textMuted}
                   />
                 </View>
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Consumed Today (Liters)</Text>
-                <View style={styles.inputWrapper}>
-                  <RainDropIcon size={20} color={Colors.light.primary} />
+                <Text style={[styles.label, { color: colors.textSecondary }]}>Consumed Today (Liters)</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: isDark ? colors.surface : "#F3F4F6" }]}>
+                  <RainDropIcon size={20} color={colors.primary} />
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: colors.text }]}
                     value={waterConsumed}
                     onChangeText={setWaterConsumed}
                     keyboardType="numeric"
                     placeholder="e.g. 1.2"
+                    placeholderTextColor={colors.textMuted}
                   />
                 </View>
               </View>
@@ -83,7 +86,7 @@ export default function EditWaterModal({ isVisible, onClose, onSave, initialValu
 
             {/* Save Button */}
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
               onPress={handleSave}
             >
               <Text style={styles.saveButtonText}>Update Water</Text>
@@ -105,7 +108,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   modalContent: {
-    backgroundColor: "white",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
@@ -120,11 +122,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
   },
   subtitle: {
     fontSize: 14,
-    color: "#6B7280",
     marginTop: 2,
   },
   closeButton: {
@@ -140,13 +140,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
     marginLeft: 4,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F3F4F6",
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 56,
@@ -155,16 +153,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     fontSize: 16,
-    color: "#111827",
     fontWeight: "500",
   },
   saveButton: {
-    backgroundColor: Colors.light.primary,
     height: 56,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

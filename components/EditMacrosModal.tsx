@@ -1,5 +1,5 @@
 
-import { Colors } from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { Activity01Icon, Cancel01Icon, FireIcon, MenuRestaurantIcon } from "hugeicons-react-native";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -17,17 +17,18 @@ interface EditMacrosModalProps {
 }
 
 export default function EditMacrosModal({ isVisible, onClose, onSave, initialValues }: EditMacrosModalProps) {
+  const { colors, isDark } = useTheme();
   const [total, setTotal] = useState(initialValues.total.toString());
-  const [proteinGoal, setProteinGoal] = useState(initialValues.proteinGoal.toString());
-  const [carbsGoal, setCarbsGoal] = useState(initialValues.carbsGoal.toString());
-  const [fatGoal, setFatGoal] = useState(initialValues.fatGoal.toString());
+  const [proteinGoal, setProteinGoal] = useState(initialValues.proteinGoal.toFixed(1));
+  const [carbsGoal, setCarbsGoal] = useState(initialValues.carbsGoal.toFixed(1));
+  const [fatGoal, setFatGoal] = useState(initialValues.fatGoal.toFixed(1));
 
   const handleSave = () => {
     onSave({
       total: parseInt(total) || 0,
-      proteinGoal: parseInt(proteinGoal) || 0,
-      carbsGoal: parseInt(carbsGoal) || 0,
-      fatGoal: parseInt(fatGoal) || 0,
+      proteinGoal: parseFloat(proteinGoal) || 0,
+      carbsGoal: parseFloat(carbsGoal) || 0,
+      fatGoal: parseFloat(fatGoal) || 0,
     });
     onClose();
   };
@@ -44,86 +45,90 @@ export default function EditMacrosModal({ isVisible, onClose, onSave, initialVal
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Edit Goals</Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Cancel01Icon size={24} color="#374151" />
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Edit Goals</Text>
+              <TouchableOpacity onPress={onClose} style={[styles.closeButton, { backgroundColor: isDark ? colors.surface : '#f9fafb' }]}>
+                <Cancel01Icon size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.form}>
               {/* Calories */}
               <View style={styles.inputContainer}>
-                <View style={styles.iconWrapper}>
-                  <Activity01Icon size={20} color={Colors.light.primary} />
+                <View style={[styles.iconWrapper, { backgroundColor: isDark ? 'rgba(0, 122, 255, 0.15)' : '#EFF6FF' }]}>
+                  <Activity01Icon size={20} color={colors.primary} />
                 </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>Calorie Goal</Text>
+                <View style={[styles.inputWrapper, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>Calorie Goal</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: colors.text }]}
                     value={total}
                     onChangeText={setTotal}
                     keyboardType="numeric"
                     placeholder="2000"
+                    placeholderTextColor={colors.textMuted}
                   />
                 </View>
               </View>
 
               {/* Protein */}
               <View style={styles.inputContainer}>
-                <View style={[styles.iconWrapper, { backgroundColor: '#eff6ff' }]}>
+                <View style={[styles.iconWrapper, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#eff6ff' }]}>
                   <Activity01Icon size={20} color="#3b82f6" />
                 </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>Protein Goal (g)</Text>
+                <View style={[styles.inputWrapper, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>Protein Goal (g)</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: colors.text }]}
                     value={proteinGoal}
                     onChangeText={setProteinGoal}
                     keyboardType="numeric"
                     placeholder="150"
+                    placeholderTextColor={colors.textMuted}
                   />
                 </View>
               </View>
 
               {/* Carbs */}
               <View style={styles.inputContainer}>
-                <View style={[styles.iconWrapper, { backgroundColor: '#fff7ed' }]}>
+                <View style={[styles.iconWrapper, { backgroundColor: isDark ? 'rgba(249, 115, 22, 0.15)' : '#fff7ed' }]}>
                   <MenuRestaurantIcon size={20} color="#f97316" />
                 </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>Carbs Goal (g)</Text>
+                <View style={[styles.inputWrapper, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>Carbs Goal (g)</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: colors.text }]}
                     value={carbsGoal}
                     onChangeText={setCarbsGoal}
                     keyboardType="numeric"
                     placeholder="250"
+                    placeholderTextColor={colors.textMuted}
                   />
                 </View>
               </View>
 
               {/* Fat */}
               <View style={styles.inputContainer}>
-                <View style={[styles.iconWrapper, { backgroundColor: '#fefce8' }]}>
+                <View style={[styles.iconWrapper, { backgroundColor: isDark ? 'rgba(234, 179, 8, 0.15)' : '#fefce8' }]}>
                   <FireIcon size={20} color="#eab308" />
                 </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>Fat Goal (g)</Text>
+                <View style={[styles.inputWrapper, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>Fat Goal (g)</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: colors.text }]}
                     value={fatGoal}
                     onChangeText={setFatGoal}
                     keyboardType="numeric"
                     placeholder="70"
+                    placeholderTextColor={colors.textMuted}
                   />
                 </View>
               </View>
             </View>
 
             <TouchableOpacity 
-              style={styles.saveButton}
+              style={[styles.saveButton, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
               onPress={handleSave}
               activeOpacity={0.8}
             >
@@ -146,7 +151,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     padding: 24,
@@ -166,11 +170,9 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#111827',
   },
   closeButton: {
     padding: 8,
-    backgroundColor: '#f9fafb',
     borderRadius: 16,
   },
   form: {
@@ -186,20 +188,17 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: Colors.light.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   inputWrapper: {
     flex: 1,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
     paddingBottom: 8,
   },
   label: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6b7280',
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -207,16 +206,13 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#111827',
     padding: 0,
   },
   saveButton: {
-    backgroundColor: Colors.light.primary,
     paddingVertical: 18,
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 10,

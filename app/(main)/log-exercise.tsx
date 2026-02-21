@@ -1,23 +1,25 @@
+import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 import {
-    ArrowLeft01Icon,
-    ArrowRight01Icon,
-    Dumbbell01Icon,
-    PencilEdit01Icon,
-    WorkoutRunIcon
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Dumbbell01Icon,
+  PencilEdit01Icon,
+  WorkoutRunIcon
 } from 'hugeicons-react-native';
 import React from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LogExerciseScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
 
   const ExerciseOption = ({ 
     title, 
@@ -33,7 +35,7 @@ export default function LogExerciseScreen() {
     bgColor: string;
   }) => (
     <TouchableOpacity 
-      style={styles.optionCard}
+      style={[styles.optionCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}
       activeOpacity={0.7}
       onPress={() => {
         if (title === 'Manual') {
@@ -46,27 +48,27 @@ export default function LogExerciseScreen() {
         }
       }}
     >
-      <View style={[styles.iconContainer, { backgroundColor: bgColor }]}>
+      <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : bgColor }]}>
         <Icon size={32} color={color} />
       </View>
       <View style={styles.textContainer}>
-        <Text style={styles.optionTitle}>{title}</Text>
-        <Text style={styles.optionDescription}>{description}</Text>
+        <Text style={[styles.optionTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>{description}</Text>
       </View>
-      <ArrowRight01Icon size={24} color="#9CA3AF" />
+      <ArrowRight01Icon size={24} color={colors.textMuted} />
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Log Exercise</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      <View style={[styles.header, { backgroundColor: isDark ? colors.surface : 'white' }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Log Exercise</Text>
         <TouchableOpacity 
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#F1F5F9' }]}
           onPress={() => router.back()}
         >
-          <ArrowLeft01Icon size={24} color="#6B7280" />
-          <Text style={styles.backButtonText}>Back</Text>
+          <ArrowLeft01Icon size={24} color={colors.textSecondary} />
+          <Text style={[styles.backButtonText, { color: colors.textSecondary }]}>Back</Text>
         </TouchableOpacity>
       </View>
 
@@ -102,13 +104,11 @@ export default function LogExerciseScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC', // Refreshing premium light blue/gray tint
   },
   header: {
     paddingHorizontal: 24,
     paddingTop: 40,
     paddingBottom: 24,
-    backgroundColor: 'white',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     shadowColor: "#000",
@@ -120,7 +120,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '900',
-    color: '#0F172A',
     marginBottom: 20,
     letterSpacing: -0.5,
   },
@@ -128,7 +127,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#F1F5F9',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 16,
@@ -137,7 +135,6 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#6B7280',
   },
   scrollContent: {
     padding: 24,
@@ -147,18 +144,16 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   optionCard: {
-    backgroundColor: 'white',
     borderRadius: 28,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: "#0F172A",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.04,
     shadowRadius: 15,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
   },
   iconContainer: {
     width: 60,
@@ -175,12 +170,10 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
     marginBottom: 4,
   },
   optionDescription: {
     fontSize: 13,
-    color: '#64748B',
     lineHeight: 18,
   },
 });

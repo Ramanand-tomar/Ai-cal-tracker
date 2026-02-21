@@ -1,268 +1,276 @@
-import Colors from '@/constants/Colors';
-import { searchFood } from '@/utils/fatSecretApi';
-import { useRouter } from 'expo-router';
-import { ArrowLeft01Icon, PlusSignIcon, Search01Icon } from 'hugeicons-react-native';
-import React, { useState } from 'react';
+import AppLoader from "@/components/ui/AppLoader";
+import BackButton from "@/components/ui/BackButton";
+import { useTheme } from "@/context/ThemeContext";
+import { fatsecretService } from "@/services/fatsecretService";
+import { useRouter } from "expo-router";
 import {
-    ActivityIndicator,
+    FilterHorizontalIcon,
+    Search01Icon
+} from "hugeicons-react-native";
+import { useEffect, useRef, useState } from "react";
+import {
     FlatList,
-    SafeAreaView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View,
-} from 'react-native';
-// Since we might not have use-debounce installed, let's implement a simple useEffect debounce or just manual.
-
-// Define Food Interface based on FatSecret API response
-interface FoodItem {
-  food_id: string;
-  food_name: string;
-  food_description: string; // e.g. "Per 100g - Calories: 52kcal | Fat: 0.17g | Carbs: 13.81g | Protein: 0.26g"
-  brand_name?: string;
-  food_type?: string;
-}
+} from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function FoodSearchScreen() {
-  const router = useRouter();
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<FoodItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false); // To show loading specifically for search
+    const router = useRouter();
+    const { colors, isDark } = useTheme();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [results, setResults] = useState<any[]>([]);
+    const searchTimeout = useRef<any>(null);
 
-  // Simple debounce logic
-  const handleSearch = async (text: string) => {
-    setQuery(text);
-    if (text.length < 3) {
-      setResults([]);
-      return;
-    }
-
-    setSearching(true);
-    try {
-        const foods = await searchFood(text);
-        setResults(foods);
-    } catch (error) {
-        console.error("Search failed", error);
-    } finally {
-        setSearching(false);
-    }
-  };
-
-  // Debouncing effect
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-        if (query.length >= 3) {
-            handleSearch(query);
+    const performSearch = async (query: string) => {
+        if (!query.trim()) {
+            setResults([]);
+            setLoading(false);
+            return;
         }
-    }, 500); // 500ms delay
 
-    return () => clearTimeout(timer);
-  }, [query]);
+        setLoading(true);
+        try {
+            const data = await fatsecretService.searchFoods(query);
+            setResults(data);
+        } catch (error) {
+            console.error("Search error:", error);
+            setResults([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const renderFoodItem = ({ item }: { item: FoodItem }) => {
-    // Parse calories from description if needed, or just display description
-    // Description format: "Per 100g - Calories: 52kcal | Fat: 0.17g ..."
-    // Let's try to extract Calories for a cleaner UI if possible, or just show the description line.
-    
-    // Extract calories regex
-    const calMatch = item.food_description.match(/Calories:\s*(\d+)kcal/);
-    const calories = calMatch ? calMatch[1] : '?';
+    useEffect(() => {
+        if (searchTimeout.current) {
+            clearTimeout(searchTimeout.current);
+        }
 
-    // Extract serving size (part before " - ")
-    const servingSize = item.food_description.split(' - ')[0] || 'Serving';
+        if (searchQuery.length > 2) {
+            searchTimeout.current = setTimeout(() => {
+                performSearch(searchQuery);
+            }, 500); // 500ms debounce
+        } else if (searchQuery.length === 0) {
+            setResults([]);
+        }
+
+        return () => {
+            if (searchTimeout.current) clearTimeout(searchTimeout.current);
+        };
+    }, [searchQuery]);
+
+    const filteredResults = results;
+
+    const renderFoodItem = ({ item, index }: { item: any, index: number }) => (
+        <Animated.View 
+            entering={FadeInDown.delay(index * 100).duration(400)}
+            style={[styles.foodCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}
+        >
+            <TouchableOpacity 
+                style={styles.foodCardContent}
+                onPress={() => router.push({
+                    pathname: "/(main)/log-food",
+                    params: { 
+                        foodId: item.id, 
+                        name: item.name, 
+                        calories: item.calories,
+                        protein: item.protein,
+                        carbs: item.carbs,
+                        fats: item.fats,
+                        unit: item.unit
+                    }
+                })}
+            >
+                <View style={styles.textContainer}>
+                    <Text style={[styles.foodName, { color: colors.text }]}>{item.name}</Text>
+                    <Text style={[styles.foodBrand, { color: colors.textMuted }]}>{item.brand} • {item.unit}</Text>
+                    <View style={styles.macroRow}>
+                        <Text style={[styles.macroText, { color: colors.textSecondary }]}>P: {item.protein}g</Text>
+                        <Text style={[styles.macroSeparator, { color: colors.border }]}>|</Text>
+                        <Text style={[styles.macroText, { color: colors.textSecondary }]}>C: {item.carbs}g</Text>
+                        <Text style={[styles.macroSeparator, { color: colors.border }]}>|</Text>
+                        <Text style={[styles.macroText, { color: colors.textSecondary }]}>F: {item.fats}g</Text>
+                    </View>
+                </View>
+                <View style={[styles.calorieBadge, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#F0FDF4' }]}>
+                    <Text style={[styles.calorieText, { color: isDark ? '#10B981' : colors.primary }]}>{item.calories}</Text>
+                    <Text style={[styles.kcalText, { color: isDark ? '#10B981' : colors.primary }]}>kcal</Text>
+                </View>
+            </TouchableOpacity>
+        </Animated.View>
+    );
 
     return (
-      <View style={styles.card}>
-        <View style={styles.cardContent}>
-          <Text style={styles.foodName}>{item.food_name}</Text>
-          {item.brand_name && <Text style={styles.brandName}>{item.brand_name}</Text>}
-          <Text style={styles.foodDescription} numberOfLines={2}>
-            {servingSize} • {calories} kcal
-          </Text>
-        </View>
-        <TouchableOpacity 
-          style={styles.addButton} 
-          onPress={() => router.push({
-            pathname: "/log-food",
-            params: { foodId: item.food_id }
-          })}
-        >
-            <PlusSignIcon size={20} color={Colors.light.primary} />
-        </TouchableOpacity>
-      </View>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+            <View style={styles.header}>
+                <BackButton />
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Search Food</Text>
+                <TouchableOpacity style={[styles.filterButton, { backgroundColor: isDark ? colors.surface : '#F8FAFC' }]}>
+                    <FilterHorizontalIcon size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.searchContainer}>
+                <View style={[styles.searchBar, { backgroundColor: isDark ? colors.surface : '#F1F5F9' }]}>
+                    <Search01Icon size={20} color={colors.textMuted} />
+                    <TextInput 
+                        style={[styles.searchInput, { color: colors.text }]}
+                        placeholder="Search for a food..."
+                        placeholderTextColor={colors.textMuted}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                </View>
+            </View>
+
+            <View style={styles.content}>
+                {loading ? (
+                    <View style={styles.centerContainer}>
+                        <AppLoader size={120} label="Searching for food..." />
+                    </View>
+                ) : filteredResults.length > 0 ? (
+                    <FlatList 
+                        data={filteredResults}
+                        renderItem={renderFoodItem}
+                        keyExtractor={item => item.id}
+                        contentContainerStyle={styles.listContent}
+                        showsVerticalScrollIndicator={false}
+                    />
+                ) : (
+                    <View style={styles.centerContainer}>
+                        <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                            {searchQuery.length > 0 ? "No results found" : "Search for any food"}
+                        </Text>
+                        <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                            {searchQuery.length > 0 
+                                ? "Try searching for something else" 
+                                : "Type at least 3 characters to start searching"}
+                        </Text>
+                    </View>
+                )}
+            </View>
+        </SafeAreaView>
     );
-  };
-
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
-          style={styles.backButton}
-        >
-          <ArrowLeft01Icon size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Search Food</Text>
-        <View style={{ width: 40 }} /> 
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-            <Search01Icon size={20} color="#9CA3AF" />
-            <TextInput
-                style={styles.input}
-                placeholder="Search food (e.g. Apple, Big Mac)"
-                value={query}
-                onChangeText={setQuery}
-                placeholderTextColor="#9CA3AF"
-                autoFocus
-            />
-            {searching && <ActivityIndicator size="small" color={Colors.light.primary} />}
-        </View>
-      </View>
-
-      {/* Content */}
-      <View style={styles.content}>
-        {query.length > 0 && query.length < 3 && (
-            <Text style={styles.hintText}>Type at least 3 characters...</Text>
-        )}
-
-        <FlatList
-            data={results}
-            renderItem={renderFoodItem}
-            keyExtractor={(item) => item.food_id}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-                query.length >= 3 && !searching ? (
-                    <Text style={styles.emptyText}>No results found.</Text>
-                ) : null
-            }
-        />
-      </View>
-    </SafeAreaView>
-  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 50,
-    marginBottom: 20,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  searchContainer: {
-    paddingHorizontal: 24,
-    marginBottom: 20,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    height: 56,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 16,
-    color: '#1E293B',
-    height: '100%',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  listContent: {
-    paddingBottom: 40,
-    gap: 12,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  cardContent: {
-    flex: 1,
-    marginRight: 12,
-  },
-  foodName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 2,
-  },
-  brandName: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.light.primary,
-    marginBottom: 2,
-  },
-  foodDescription: {
-    fontSize: 14,
-    color: '#64748B',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hintText: {
-    textAlign: 'center',
-    color: '#94A3B8',
-    marginTop: 20,
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#94A3B8',
-    marginTop: 20,
-  },
+    container: {
+        flex: 1,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 24,
+        paddingTop: 20,
+        paddingBottom: 20,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    filterButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    searchContainer: {
+        paddingHorizontal: 24,
+        marginBottom: 24,
+    },
+    searchBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 16,
+        gap: 12,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    content: {
+        flex: 1,
+    },
+    listContent: {
+        paddingHorizontal: 24,
+        paddingBottom: 40,
+    },
+    foodCard: {
+        borderRadius: 20,
+        marginBottom: 16,
+        borderWidth: 1,
+        overflow: 'hidden',
+    },
+    foodCardContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+    },
+    textContainer: {
+        flex: 1,
+    },
+    foodName: {
+        fontSize: 16,
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    foodBrand: {
+        fontSize: 13,
+        fontWeight: '500',
+        marginBottom: 8,
+    },
+    macroRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    macroText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    macroSeparator: {
+        fontSize: 12,
+    },
+    calorieBadge: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 12,
+        minWidth: 60,
+    },
+    calorieText: {
+        fontSize: 16,
+        fontWeight: '800',
+    },
+    kcalText: {
+        fontSize: 10,
+        fontWeight: '700',
+        marginTop: -2,
+    },
+    centerContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 40,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 8,
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        textAlign: 'center',
+    },
 });

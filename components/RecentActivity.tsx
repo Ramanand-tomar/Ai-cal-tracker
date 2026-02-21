@@ -1,12 +1,12 @@
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import {
-  Activity01Icon,
-  Add01Icon,
-  Dumbbell01Icon,
-  FireIcon,
-  MenuRestaurantIcon,
-  Yoga01Icon
+    Activity01Icon,
+    Add01Icon,
+    Dumbbell01Icon,
+    FireIcon,
+    MenuRestaurantIcon,
+    Yoga01Icon
 } from "hugeicons-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -28,12 +28,17 @@ export interface Activity {
 
 interface RecentActivityProps {
   activities?: Activity[];
+  onViewAll?: () => void;
 }
 
 const mockActivities: Activity[] = [];
 
-export default function RecentActivity({ activities = mockActivities }: RecentActivityProps) {
+export default function RecentActivity({ 
+  activities = mockActivities,
+  onViewAll 
+}: RecentActivityProps) {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
 
   const getIcon = (type: string, exerciseType?: string) => {
     if (type === 'meal') return MenuRestaurantIcon;
@@ -45,15 +50,15 @@ export default function RecentActivity({ activities = mockActivities }: RecentAc
   };
 
   const getIconColor = (type: string) => {
-    if (type === 'meal') return Colors.light.primary;
+    if (type === 'meal') return colors.primary;
     if (type === 'water') return '#0EA5E9'; // Sky blue for water
     return '#3B82F6'; // Blue for exercises
   };
 
   const getIconBg = (type: string) => {
-    if (type === 'meal') return '#EAF6ED';
-    if (type === 'water') return '#F0F9FF'; // Light sky blue
-    return '#EFF6FF'; // Light blue for exercises
+    if (type === 'meal') return isDark ? 'rgba(41, 143, 80, 0.15)' : '#EAF6ED';
+    if (type === 'water') return isDark ? 'rgba(14, 165, 233, 0.15)' : '#F0F9FF';
+    return isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF';
   };
 
   const renderActivityItem = (activity: Activity, index: number) => {
@@ -68,7 +73,10 @@ export default function RecentActivity({ activities = mockActivities }: RecentAc
         entering={FadeInDown.delay(index * 100).springify()}
       >
         <TouchableOpacity 
-          style={styles.activityItem}
+          style={[
+            styles.activityItem, 
+            { backgroundColor: colors.surface, borderColor: colors.border }
+          ]}
           activeOpacity={0.7}
         >
           {/* Left Icon with Accent */}
@@ -80,13 +88,13 @@ export default function RecentActivity({ activities = mockActivities }: RecentAc
           {/* Middle Content */}
           <View style={styles.itemInfo}>
             <View className="flex-row items-center justify-between mb-1">
-                <Text style={styles.itemTitle} numberOfLines={1}>{activity.title}</Text>
+                <Text style={[styles.itemTitle, { color: colors.text }]} numberOfLines={1}>{activity.title}</Text>
                 <Text style={styles.itemTime}>{activity.time}</Text>
             </View>
             
             {isExercise ? (
               <View className="flex-row items-center">
-                <View style={styles.caloriesPill}>
+                <View style={[styles.caloriesPill, { backgroundColor: isDark ? 'rgba(249, 115, 22, 0.15)' : '#FFF7ED' }]}>
                   <FireIcon size={12} color="#F97316" variant="stroke" />
                   <Text style={styles.caloriesText}>
                     {activity.calories || 0} kcal
@@ -95,8 +103,8 @@ export default function RecentActivity({ activities = mockActivities }: RecentAc
                 
                 {(activity.intensity || activity.duration) && (
                   <View className="flex-row items-center ml-2">
-                    <View className="w-1 h-1 rounded-full bg-gray-300 mx-1" />
-                    <Text style={styles.itemSubtitle}>
+                    <View style={{ backgroundColor: colors.border }} className="w-1 h-1 rounded-full mx-1" />
+                    <Text style={[styles.itemSubtitle, { color: colors.textSecondary }]}>
                       {activity.intensity ? `${activity.intensity} • ` : ''}
                       {activity.duration ? `${activity.duration}m` : ''}
                     </Text>
@@ -105,8 +113,7 @@ export default function RecentActivity({ activities = mockActivities }: RecentAc
               </View>
             ) : (
                 <View className="flex-row items-center">
-                   <Text style={styles.itemSubtitle} numberOfLines={1}>{activity.subtitle}</Text>
-                   {/* We could add macro dots here in the future */}
+                   <Text style={[styles.itemSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>{activity.subtitle}</Text>
                 </View>
             )}
           </View>
@@ -115,11 +122,23 @@ export default function RecentActivity({ activities = mockActivities }: RecentAc
           <View style={styles.itemRight}>
              <View style={[
                styles.valueTag, 
-               { backgroundColor: isExercise ? '#FFF4ED' : activity.type === 'water' ? '#F0F9FF' : '#F0FDF4' }
+               { 
+                 backgroundColor: isExercise 
+                  ? (isDark ? 'rgba(234, 88, 12, 0.15)' : '#FFF4ED') 
+                  : activity.type === 'water' 
+                    ? (isDark ? 'rgba(14, 165, 233, 0.15)' : '#F0F9FF')
+                    : (isDark ? 'rgba(41, 143, 80, 0.15)' : '#F0FDF4')
+               }
              ]}>
                 <Text style={[
-                  styles.valueText, 
-                  { color: isExercise ? '#EA580C' : activity.type === 'water' ? '#0369A1' : '#166534' }
+                   styles.valueText, 
+                   { 
+                     color: isExercise 
+                      ? '#EA580C' 
+                      : activity.type === 'water' 
+                        ? (isDark ? '#38BDF8' : '#0369A1')
+                        : (isDark ? colors.primary : '#166534')
+                   }
                 ]}>
                     {isExercise ? `-${activity.calories}` : 
                      activity.type === 'water' ? `+${activity.amount}` : `+${activity.calories}`}
@@ -134,17 +153,17 @@ export default function RecentActivity({ activities = mockActivities }: RecentAc
   const renderEmptyState = () => (
     <Animated.View 
         entering={FadeInDown.springify()}
-        style={styles.emptyContainer}
+        style={[styles.emptyContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}
     >
-      <View style={styles.iconContainer}>
-        <Activity01Icon size={40} color={Colors.light.primary} />
+      <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(41, 143, 80, 0.15)' : '#F0FDF4' }]}>
+        <Activity01Icon size={40} color={colors.primary} />
       </View>
-      <Text style={styles.emptyTitle}>Your feed is quiet</Text>
-      <Text style={styles.emptySubtitle}>
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>Your feed is quiet</Text>
+      <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
         Track your progress by logging your first meal or workout for today.
       </Text>
       <TouchableOpacity 
-        style={styles.addButton}
+        style={[styles.addButton, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
         activeOpacity={0.8}
         onPress={() => router.push("/(main)/plus")}
       >
@@ -158,12 +177,16 @@ export default function RecentActivity({ activities = mockActivities }: RecentAc
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-            <Text style={styles.title}>Recent Activity</Text>
-            <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-0.5">Today's Timeline</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Recent Activity</Text>
+            <Text style={{ color: colors.textMuted }} className="text-xs font-bold uppercase tracking-widest mt-0.5">Today's Timeline</Text>
         </View>
         {activities.length > 0 && (
-          <TouchableOpacity className="bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
-            <Text style={styles.viewAll}>View All</Text>
+          <TouchableOpacity 
+            onPress={onViewAll}
+            style={{ backgroundColor: isDark ? colors.surface : colors.border, borderColor: colors.border }}
+            className="px-4 py-2 rounded-full border"
+          >
+            <Text style={[styles.viewAll, { color: colors.textSecondary }]}>View All</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -195,23 +218,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "900",
-    color: "#0F172A",
     letterSpacing: -0.5,
   },
   viewAll: {
     fontSize: 12,
-    color: "#64748B",
     fontWeight: "800",
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   emptyContainer: {
-    backgroundColor: "white",
     borderRadius: 36,
     padding: 40,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.05,
@@ -221,7 +240,6 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 72,
     height: 72,
-    backgroundColor: '#F0FDF4',
     borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
@@ -230,26 +248,22 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#0F172A",
     marginBottom: 10,
   },
   emptySubtitle: {
     fontSize: 15,
-    color: "#64748B",
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 28,
     paddingHorizontal: 10,
   },
   addButton: {
-    backgroundColor: Colors.light.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 20,
-    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -265,13 +279,11 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   activityItem: {
-    backgroundColor: "white",
     borderRadius: 28,
     padding: 14,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     shadowColor: "#0F172A",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.02,
@@ -303,14 +315,12 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 17,
     fontWeight: "800",
-    color: "#1E293B",
     flex: 1,
     marginRight: 8,
   },
   caloriesPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF7ED',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -323,7 +333,6 @@ const styles = StyleSheet.create({
   },
   itemSubtitle: {
     fontSize: 13,
-    color: "#64748B",
     fontWeight: '600',
   },
   itemRight: {
@@ -345,3 +354,4 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
 });
+

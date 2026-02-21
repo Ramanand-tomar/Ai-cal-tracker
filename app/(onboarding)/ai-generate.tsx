@@ -1,3 +1,4 @@
+import AppLoader from "@/components/ui/AppLoader";
 import { db } from "@/config/firebaseConfig";
 import { getGeminiModel } from "@/config/geminiConfig";
 import Colors from "@/constants/Colors";
@@ -6,7 +7,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { Brain01Icon, CheckmarkCircle01Icon } from "hugeicons-react-native";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Animated, SafeAreaView, Text, View } from "react-native";
+import { Animated, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Step {
   id: number;
@@ -158,7 +160,7 @@ export default function AiGenerate() {
                 {step.status === "completed" ? (
                   <CheckmarkCircle01Icon size={20} color={Colors.light.primary} />
                 ) : step.status === "loading" ? (
-                  <ActivityIndicator size="small" color={Colors.light.primary} />
+                  <AppLoader size={24} />
                 ) : (
                   <View className="w-2 h-2 rounded-full bg-gray-200" />
                 )}

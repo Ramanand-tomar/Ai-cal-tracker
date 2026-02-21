@@ -1,5 +1,7 @@
+import AppLoader from "@/components/ui/AppLoader";
+import BackButton from "@/components/ui/BackButton";
 import { db } from "@/config/firebaseConfig";
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import {
@@ -15,7 +17,6 @@ import {
     updateDoc
 } from "firebase/firestore";
 import {
-    ArrowLeft01Icon,
     Cancel01Icon,
     PlusSignIcon,
     ThumbsUpIcon,
@@ -23,7 +24,6 @@ import {
 } from "hugeicons-react-native";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     FlatList,
     KeyboardAvoidingView,
@@ -51,6 +51,7 @@ interface FeatureRequest {
 export default function FeatureRequestsScreen() {
     const { user } = useUser();
     const router = useRouter();
+    const { colors, isDark } = useTheme();
     const [features, setFeatures] = useState<FeatureRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -136,49 +137,51 @@ export default function FeatureRequestsScreen() {
         return (
             <Animated.View 
                 entering={FadeInDown.duration(400).delay(index * 100)}
-                style={styles.featureCard}
+                style={[styles.featureCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}
             >
                 <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>{item.title}</Text>
-                    <Text style={styles.featureDescription}>{item.description}</Text>
-                    <Text style={styles.featureAuthor}>Requested by {item.userName}</Text>
+                    <Text style={[styles.featureTitle, { color: colors.text }]}>{item.title}</Text>
+                    <Text style={[styles.featureDescription, { color: colors.textSecondary }]}>{item.description}</Text>
+                    <Text style={[styles.featureAuthor, { color: colors.textMuted }]}>Requested by {item.userName}</Text>
                 </View>
                 
                 <TouchableOpacity 
                     onPress={() => handleUpvote(item.id, item.upvotes)}
-                    style={[styles.upvoteButton, hasUpvoted && styles.upvotedButton]}
+                    style={[
+                        styles.upvoteButton, 
+                        { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F8FAFC' },
+                        hasUpvoted && { backgroundColor: colors.primary }
+                    ]}
                     activeOpacity={0.7}
                 >
-                    <ThumbsUpIcon size={20} color={hasUpvoted ? "white" : "#64748B"} variant={hasUpvoted ? "stroke" : "stroke"} />
-                    <Text style={[styles.upvoteCount, hasUpvoted && styles.upvotedCount]}>{upvoteCount}</Text>
+                    <ThumbsUpIcon size={20} color={hasUpvoted ? "white" : colors.textSecondary} variant={hasUpvoted ? "stroke" : "stroke"} />
+                    <Text style={[styles.upvoteCount, { color: colors.text }, hasUpvoted && { color: 'white' }]}>{upvoteCount}</Text>
                 </TouchableOpacity>
             </Animated.View>
         );
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeft01Icon size={24} color="#0F172A" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Feature Requests</Text>
+                <BackButton />
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Feature Requests</Text>
                 <TouchableOpacity 
                     onPress={() => setIsModalVisible(true)} 
-                    style={styles.addButton}
+                    style={[styles.addButton, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#F0FDF4' }]}
                 >
-                    <PlusSignIcon size={24} color={Colors.light.primary} />
+                    <PlusSignIcon size={24} color={isDark ? '#10B981' : colors.primary} />
                 </TouchableOpacity>
             </View>
 
             {loading ? (
                 <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color={Colors.light.primary} />
+                    <AppLoader label="Loading features..." />
                 </View>
             ) : features.length === 0 ? (
                 <View style={styles.centerContainer}>
-                    <Text style={styles.emptyTitle}>No requests yet</Text>
-                    <Text style={styles.emptySubtitle}>Be the first to suggest a new feature!</Text>
+                    <Text style={[styles.emptyTitle, { color: colors.text }]}>No requests yet</Text>
+                    <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>Be the first to suggest a new feature!</Text>
                 </View>
             ) : (
                 <FlatList 
@@ -200,49 +203,60 @@ export default function FeatureRequestsScreen() {
                 <View style={styles.modalOverlay}>
                     <KeyboardAvoidingView 
                         behavior={Platform.OS === "ios" ? "padding" : "height"}
-                        style={styles.modalView}
+                        style={[styles.modalView, { backgroundColor: isDark ? colors.surface : 'white' }]}
                     >
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Suggest Feature</Text>
-                            <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.closeButton}>
-                                <Cancel01Icon size={24} color="#94A3B8" />
+                            <Text style={[styles.modalTitle, { color: colors.text }]}>Suggest Feature</Text>
+                            <TouchableOpacity 
+                                onPress={() => setIsModalVisible(false)} 
+                                style={[styles.closeButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F8FAFC' }]}
+                            >
+                                <Cancel01Icon size={24} color={colors.textMuted} />
                             </TouchableOpacity>
                         </View>
 
                         <View style={styles.form}>
                             <View style={styles.inputGroup}>
-                                <Text style={styles.label}>What's the feature?</Text>
+                                <Text style={[styles.label, { color: colors.textSecondary }]}>What's the feature?</Text>
                                 <TextInput 
-                                    style={styles.input}
+                                    style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F8FAFC', color: colors.text }]}
                                     placeholder="e.g. Barcode Scanner"
                                     value={newTitle}
                                     onChangeText={setNewTitle}
-                                    placeholderTextColor="#94A3B8"
+                                    placeholderTextColor={colors.textMuted}
                                 />
                             </View>
 
                             <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Tell us more</Text>
+                                <Text style={[styles.label, { color: colors.textSecondary }]}>Tell us more</Text>
                                 <TextInput 
-                                    style={[styles.input, styles.textArea]}
+                                    style={[
+                                        styles.input, 
+                                        { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F8FAFC', color: colors.text },
+                                        styles.textArea
+                                    ]}
                                     placeholder="Briefly describe how this feature would help you..."
                                     value={newDescription}
                                     onChangeText={setNewDescription}
                                     multiline
                                     numberOfLines={4}
                                     textAlignVertical="top"
-                                    placeholderTextColor="#94A3B8"
+                                    placeholderTextColor={colors.textMuted}
                                 />
                             </View>
                         </View>
 
                         <TouchableOpacity 
-                            style={[styles.submitButton, submitting && styles.disabledButton]}
+                            style={[
+                                styles.submitButton, 
+                                { backgroundColor: colors.primary, shadowColor: colors.primary },
+                                submitting && styles.disabledButton
+                            ]}
                             onPress={handleSubmitFeature}
                             disabled={submitting}
                         >
                             {submitting ? (
-                                <ActivityIndicator color="white" />
+                                <AppLoader size={24} />
                             ) : (
                                 <>
                                     <Tick02Icon size={20} color="white" variant="stroke" />
@@ -260,7 +274,6 @@ export default function FeatureRequestsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white',
     },
     header: {
         flexDirection: 'row',
@@ -270,24 +283,14 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'ios' ? 20 : 60,
         paddingBottom: 20,
     },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8FAFC',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#0F172A',
     },
     addButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#F0FDF4',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -303,12 +306,10 @@ const styles = StyleSheet.create({
     },
     featureCard: {
         flexDirection: 'row',
-        backgroundColor: 'white',
         borderRadius: 24,
         padding: 20,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#F1F5F9',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.02,
@@ -322,50 +323,37 @@ const styles = StyleSheet.create({
     featureTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#0F172A',
         marginBottom: 4,
     },
     featureDescription: {
         fontSize: 14,
-        color: '#64748B',
         lineHeight: 20,
         marginBottom: 12,
     },
     featureAuthor: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#94A3B8',
     },
     upvoteButton: {
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#F8FAFC',
         paddingHorizontal: 16,
         borderRadius: 16,
         height: 54,
         alignSelf: 'center',
     },
-    upvotedButton: {
-        backgroundColor: Colors.light.primary,
-    },
     upvoteCount: {
         fontSize: 14,
         fontWeight: '800',
-        color: '#0F172A',
         marginTop: 4,
-    },
-    upvotedCount: {
-        color: 'white',
     },
     emptyTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#0F172A',
         marginBottom: 8,
     },
     emptySubtitle: {
         fontSize: 14,
-        color: '#64748B',
         textAlign: 'center',
     },
     modalOverlay: {
@@ -374,7 +362,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalView: {
-        backgroundColor: 'white',
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         padding: 24,
@@ -389,13 +376,11 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 20,
         fontWeight: '800',
-        color: '#0F172A',
     },
     closeButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#F8FAFC',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -409,29 +394,24 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#64748B',
         marginLeft: 4,
     },
     input: {
-        backgroundColor: '#F8FAFC',
         borderRadius: 16,
         padding: 16,
         fontSize: 16,
         fontWeight: '600',
-        color: '#0F172A',
     },
     textArea: {
         height: 120,
     },
     submitButton: {
-        backgroundColor: Colors.light.primary,
         flexDirection: 'row',
         height: 60,
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
-        shadowColor: Colors.light.primary,
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.2,
         shadowRadius: 15,

@@ -1,24 +1,25 @@
+import AppLoader from '@/components/ui/AppLoader';
 import { db } from '@/config/firebaseConfig';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { FireIcon } from 'hugeicons-react-native';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+    Alert,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function WorkoutSummaryScreen() {
   const router = useRouter();
   const { userId } = useAuth();
   const params = useLocalSearchParams();
+  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
 
   const calories = Number(params.calories) || 0;
@@ -55,33 +56,33 @@ export default function WorkoutSummaryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Workout Complete!</Text>
-        <Text style={styles.subtitle}>{type} • {duration} min • {intensity}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Workout Complete!</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{type} • {duration} min • {intensity}</Text>
 
         <View style={styles.fireContainer}>
-          <View style={styles.iconCircle}>
+          <View style={[styles.iconCircle, { backgroundColor: isDark ? 'rgba(249, 115, 22, 0.1)' : '#FFF7ED', borderColor: isDark ? 'rgba(249, 115, 22, 0.2)' : '#FFEDD5' }]}>
             <FireIcon size={64} color="#F97316" variant="stroke" />
           </View>
-          <Text style={styles.burnedLabel}>Your Workout Burned</Text>
-          <Text style={styles.calorieValue}>{calories}</Text>
-          <Text style={styles.unitLabel}>kcal</Text>
+          <Text style={[styles.burnedLabel, { color: colors.textSecondary }]}>Your Workout Burned</Text>
+          <Text style={[styles.calorieValue]}>{calories}</Text>
+          <Text style={[styles.unitLabel, { color: colors.textMuted }]}>kcal</Text>
         </View>
 
-        <View style={styles.statsContainer}>
-          <Text style={styles.motivationText}>Great job! You're crushing it.</Text>
+        <View style={[styles.statsContainer, { backgroundColor: isDark ? colors.surface : '#F8FAFC' }]}>
+          <Text style={[styles.motivationText, { color: colors.textSecondary }]}>Great job! You're crushing it.</Text>
         </View>
       </View>
 
       <View style={styles.footer}>
         <TouchableOpacity 
-          style={[styles.logButton, loading && styles.logButtonDisabled]}
+          style={[styles.logButton, { backgroundColor: colors.primary, shadowColor: colors.primary }, loading && styles.logButtonDisabled]}
           onPress={handleLog}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <AppLoader size={30} />
           ) : (
             <Text style={styles.logButtonText}>Log Workout</Text>
           )}
@@ -94,7 +95,6 @@ export default function WorkoutSummaryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
   content: {
     flex: 1,
@@ -105,13 +105,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#0F172A',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#64748B',
     marginBottom: 48,
     textAlign: 'center',
     fontWeight: '500',
@@ -124,16 +122,13 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#FFF7ED',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#FFEDD5',
   },
   burnedLabel: {
     fontSize: 16,
-    color: '#64748B',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -148,19 +143,16 @@ const styles = StyleSheet.create({
   },
   unitLabel: {
     fontSize: 24,
-    color: '#94A3B8',
     fontWeight: '600',
   },
   statsContainer: {
     padding: 24,
-    backgroundColor: '#F8FAFC',
     borderRadius: 24,
     width: '100%',
     alignItems: 'center',
   },
   motivationText: {
     fontSize: 16,
-    color: '#334155',
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -169,12 +161,10 @@ const styles = StyleSheet.create({
     paddingBottom: 34,
   },
   logButton: {
-    backgroundColor: Colors.light.primary,
     height: 60,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,

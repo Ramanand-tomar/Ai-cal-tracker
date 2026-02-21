@@ -1,4 +1,4 @@
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/context/ThemeContext';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import {
@@ -14,6 +14,7 @@ import {
     Alert,
     Dimensions,
     Modal,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -32,6 +33,7 @@ const GAP = 32;
 
 export default function QuickActionModal({ isVisible, onClose }: QuickActionModalProps) {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const [isSelectionVisible, setIsSelectionVisible] = React.useState(false);
 
   const handleAction = (route: string) => {
@@ -107,18 +109,18 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
   }) => (
     <View style={styles.actionItem}>
       <TouchableOpacity 
-        style={[styles.circle, { backgroundColor: bgColor }]}
+        style={[styles.circle, { backgroundColor: isDark ? colors.surface : bgColor }]}
         activeOpacity={0.8}
         onPress={onPress}
       >
-        <Icon size={28} color={color} />
+        <Icon size={28} color={isDark ? colors.text : color} />
         {isPremium && (
           <View style={styles.premiumBadge}>
             <CrownIcon size={10} color="white" />
           </View>
         )}
       </TouchableOpacity>
-      <Text style={styles.actionLabel}>{title}</Text>
+      <Text style={[styles.actionLabel, { color: isDark ? colors.text : 'white' }]}>{title}</Text>
     </View>
   );
 
@@ -145,8 +147,8 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
                   <ActionButton 
                     title="Water"
                     icon={DropletIcon}
-                    color={Colors.light.primary}
-                    bgColor={Colors.light.primaryLight}
+                    color={colors.primary}
+                    bgColor={isDark ? colors.surface : "#e0e7ff"}
                     onPress={() => handleAction('/(main)/water-intake')} 
                   />
                 </View>
@@ -170,8 +172,8 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
               </View>
               
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                 <View style={styles.closeIconBg}>
-                   <Cancel01Icon size={24} color="#6B7280" />
+                 <View style={[styles.closeIconBg, { backgroundColor: isDark ? colors.surface : 'white' }]}>
+                    <Cancel01Icon size={24} color={colors.textSecondary} />
                  </View>
               </TouchableOpacity>
             </View>
@@ -188,10 +190,10 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
       >
         <TouchableWithoutFeedback onPress={() => setIsSelectionVisible(false)}>
           <View style={styles.selectionOverlay}>
-            <View style={styles.selectionContent}>
+            <View style={[styles.selectionContent, { backgroundColor: colors.background }]}>
               <View style={styles.selectionHeader}>
-                <Text style={styles.selectionTitle}>Scan Food</Text>
-                <Text style={styles.selectionSubtitle}>Select how you want to add your photo</Text>
+                <Text style={[styles.selectionTitle, { color: colors.text }]}>Scan Food</Text>
+                <Text style={[styles.selectionSubtitle, { color: colors.textSecondary }]}>Select how you want to add your photo</Text>
               </View>
 
               <View style={styles.selectionOptions}>
@@ -199,28 +201,28 @@ export default function QuickActionModal({ isVisible, onClose }: QuickActionModa
                   style={styles.selectionOption} 
                   onPress={() => pickImage(true)}
                 >
-                  <View style={[styles.optionIconBox, { backgroundColor: '#F5F3FF' }]}>
+                  <View style={[styles.optionIconBox, { backgroundColor: isDark ? colors.surface : '#F5F3FF' }]}>
                     <Camera01Icon size={32} color="#8B5CF6" />
                   </View>
-                  <Text style={styles.optionText}>Take Photo</Text>
+                  <Text style={[styles.optionText, { color: colors.text }]}>Take Photo</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
                   style={styles.selectionOption} 
                   onPress={() => pickImage(false)}
                 >
-                  <View style={[styles.optionIconBox, { backgroundColor: '#F0F9FF' }]}>
+                  <View style={[styles.optionIconBox, { backgroundColor: isDark ? colors.surface : '#F0F9FF' }]}>
                     <MenuRestaurantIcon size={32} color="#0EA5E9" />
                   </View>
-                  <Text style={styles.optionText}>Gallery</Text>
+                  <Text style={[styles.optionText, { color: colors.text }]}>Gallery</Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity 
-                style={styles.cancelBtn} 
+                style={[styles.cancelBtn, { backgroundColor: isDark ? colors.surface : '#F1F5F9' }]} 
                 onPress={() => setIsSelectionVisible(false)}
               >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+                <Text style={[styles.cancelBtnText, { color: colors.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'flex-end',
-    paddingBottom: 110, // Positioned above the tab bar
+    paddingBottom: 110,
   },
   content: {
     alignItems: 'center',
@@ -270,7 +272,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 13,
     fontWeight: '600',
-    color: 'white',
     textAlign: 'center',
   },
   premiumBadge: {
@@ -293,7 +294,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: "#000",
@@ -308,11 +308,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   selectionContent: {
-    backgroundColor: 'white',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 32,
-    paddingBottom: 50,
+    paddingBottom: Platform.OS === 'ios' ? 50 : 32,
   },
   selectionHeader: {
     marginBottom: 32,
@@ -321,12 +320,10 @@ const styles = StyleSheet.create({
   selectionTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#0F172A',
     marginBottom: 8,
   },
   selectionSubtitle: {
     fontSize: 15,
-    color: '#64748B',
     textAlign: 'center',
   },
   selectionOptions: {
@@ -353,10 +350,8 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
   },
   cancelBtn: {
-    backgroundColor: '#F1F5F9',
     height: 56,
     borderRadius: 16,
     alignItems: 'center',
@@ -365,6 +360,5 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#64748B',
   },
 });

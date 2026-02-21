@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeContext";
 import { ArrowRight01Icon } from "hugeicons-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -17,19 +18,28 @@ export default function ProfileOption({
   onPress,
   showChevron = true,
   isLast = false,
-  textColor = "#1E293B",
+  textColor,
 }: ProfileOptionProps) {
+  const { colors, isDark } = useTheme();
+  
+  const finalTextColor = textColor || colors.text;
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      style={[styles.container, !isLast && styles.borderBottom]}
+      style={[
+        styles.container, 
+        !isLast && { borderBottomWidth: 1, borderBottomColor: colors.border }
+      ]}
     >
       <View style={styles.leftContent}>
-        <View style={styles.iconWrapper}>{icon}</View>
-        <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+        <View style={[styles.iconWrapper, { backgroundColor: isDark ? colors.background : '#F8FAFC' }]}>
+          {icon}
+        </View>
+        <Text style={[styles.label, { color: finalTextColor }]}>{label}</Text>
       </View>
-      {showChevron && <ArrowRight01Icon size={20} color="#94A3B8" variant="stroke" />}
+      {showChevron && <ArrowRight01Icon size={20} color={colors.textMuted} variant="stroke" />}
     </TouchableOpacity>
   );
 }
@@ -41,10 +51,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 16,
   },
-  borderBottom: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-  },
   leftContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -54,7 +60,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#F8FAFC",
     alignItems: "center",
     justifyContent: "center",
   },

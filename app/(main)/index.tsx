@@ -1,3 +1,4 @@
+import AllActivityModal from "@/components/AllActivityModal";
 import CaloriesCard from "@/components/CaloriesCard";
 import HomeHeader from "@/components/HomeHeader";
 import InsightCard from "@/components/InsightCard";
@@ -5,20 +6,30 @@ import RecentActivity, { Activity } from "@/components/RecentActivity";
 import WaterIntakeCard from "@/components/WaterIntakeCard";
 import WeeklyCalendar from "@/components/WeeklyCalendar";
 import { db } from "@/config/firebaseConfig";
+import { useTheme } from "@/context/ThemeContext";
+import {
+    cancelAllNotifications,
+    requestNotificationPermissions,
+    scheduleReminders
+} from "@/utils/notifications";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { startOfToday } from "date-fns";
 import { Redirect, useFocusEffect } from "expo-router";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { Logout01Icon } from "hugeicons-react-native";
 import React, { useCallback, useState } from "react";
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
   const { isSignedIn, signOut } = useAuth();
   const { user } = useUser();
+  const { colors, isDark } = useTheme();
   const [selectedDate, setSelectedDate] = useState(startOfToday());
+// ... (rest of the state and fetch logic remains the same)
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isActivityModalVisible, setIsActivityModalVisible] = useState(false);
   
   const [goals, setGoals] = useState({
     total: 2100,
@@ -159,12 +170,35 @@ export default function Index() {
 
       setActivities(mappedActivities);
 
+      // Smart Notification Scheduling:
+      // Only schedule if notifications are enabled in user profile
+      const userDataRef = doc(db, "users", user.id);
+      const userDataSnap = await getDoc(userDataRef);
+      const userData = userDataSnap.exists() ? userDataSnap.data() : null;
+      
+      if (userData && userData.notificationsEnabled !== false) {
+        const isSubscribed = userData.isSubscribed || false;
+
+        if (mappedActivities.length > 0) {
+          // User has logged activity, cancel reminders for the day
+          await cancelAllNotifications();
+          console.log("Activity detected, notifications cancelled.");
+        } else {
+          // No activity logged, ensure reminders are scheduled
+          const hasPermission = await requestNotificationPermissions();
+          if (hasPermission) {
+            await scheduleReminders(isSubscribed);
+            console.log("No activity detected, notifications scheduled.");
+          }
+        }
+      }
+
     } catch (error) {
-      console.error("Error fetching daily logs:", error);
+        console.error("Error fetching daily logs:", error);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   useFocusEffect(
     useCallback(() => {
@@ -178,7 +212,7 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ backgroundColor: colors.background }} className="flex-1">
       <HomeHeader />
       <WeeklyCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} />
       
@@ -223,18 +257,29 @@ export default function Index() {
 
           <InsightCard insight={goals.insight} />
 
-          <RecentActivity activities={activities} />
+          <RecentActivity 
+            activities={activities} 
+            onViewAll={() => setIsActivityModalVisible(true)}
+          />
+
+          <AllActivityModal 
+            isVisible={isActivityModalVisible}
+            onClose={() => setIsActivityModalVisible(false)}
+            activities={activities}
+          />
 
           {/* Sign Out Button for Testing */}
           <TouchableOpacity
             onPress={() => signOut()}
-            className="bg-gray-50 py-4 rounded-2xl flex-row items-center justify-center mt-12 border border-gray-100"
+            style={{ backgroundColor: isDark ? colors.surface : colors.border, borderColor: colors.border }}
+            className="py-4 rounded-2xl flex-row items-center justify-center mt-12 border"
           >
-            <Logout01Icon size={20} color="#6B7280" />
-            <Text className="text-gray-500 font-bold ml-2">Sign Out</Text>
+            <Logout01Icon size={20} color={colors.textSecondary} />
+            <Text style={{ color: colors.textSecondary }} className="font-bold ml-2">Sign Out</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+

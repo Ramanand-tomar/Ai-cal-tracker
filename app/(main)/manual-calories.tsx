@@ -1,5 +1,6 @@
+import AppLoader from '@/components/ui/AppLoader';
 import { db } from '@/config/firebaseConfig';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -9,20 +10,21 @@ import {
 } from 'hugeicons-react-native';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
     Alert,
+    Platform,
     SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 
 export default function ManualCaloriesScreen() {
   const router = useRouter();
   const { userId } = useAuth();
+  const { colors, isDark } = useTheme();
   const [calories, setCalories] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -51,7 +53,6 @@ export default function ManualCaloriesScreen() {
         timestamp: serverTimestamp(),
       });
 
-      console.log('Calories logged successfully');
       router.push('/');
     } catch (error) {
       console.error('Error logging calories:', error);
@@ -62,48 +63,52 @@ export default function ManualCaloriesScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Manual Entry</Text>
-        <Text style={styles.headerSubtitle}>Enter calories burned manually</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: isDark ? colors.surface : 'white' }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Manual Entry</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Enter calories burned manually</Text>
         <TouchableOpacity 
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }]}
           onPress={() => router.push('/log-exercise')}
         >
-          <ArrowLeft01Icon size={24} color="#6B7280" />
-          <Text style={styles.backButtonText}>Back</Text>
+          <ArrowLeft01Icon size={24} color={colors.textSecondary} />
+          <Text style={[styles.backButtonText, { color: colors.textSecondary }]}>Back</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}>
           <View style={styles.cardHeader}>
-            <FireIcon size={24} color={Colors.light.secondary} />
-            <Text style={styles.cardLabel}>Calories Burned</Text>
+            <FireIcon size={24} color={colors.secondary} />
+            <Text style={[styles.cardLabel, { color: colors.text }]}>Calories Burned</Text>
           </View>
           
           <TextInput
-            style={styles.calorieInput}
+            style={[styles.calorieInput, { color: colors.text, borderBottomColor: colors.primary }]}
             keyboardType="numeric"
             value={calories}
             onChangeText={setCalories}
             placeholder="0"
-            placeholderTextColor="#CBD5E1"
+            placeholderTextColor={colors.textMuted}
             editable={!loading}
           />
-          <Text style={styles.unitLabel}>cal</Text>
+          <Text style={[styles.unitLabel, { color: colors.textSecondary }]}>cal</Text>
         </View>
       </ScrollView>
 
       {/* Log Button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: isDark ? colors.surface : 'white', borderTopColor: colors.border }]}>
         <TouchableOpacity 
-          style={[styles.logButton, loading && styles.logButtonDisabled]}
+          style={[
+            styles.logButton, 
+            { backgroundColor: colors.primary },
+            loading && styles.logButtonDisabled
+          ]}
           onPress={handleLog}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <AppLoader size={30} />
           ) : (
             <Text style={styles.logButtonText}>Log Exercise</Text>
           )}
@@ -116,13 +121,11 @@ export default function ManualCaloriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   header: {
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: Platform.OS === 'ios' ? 20 : 60,
     paddingBottom: 24,
-    backgroundColor: 'white',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     shadowColor: "#000",
@@ -134,20 +137,17 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '900',
-    color: '#0F172A',
     marginBottom: 4,
     letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#64748B',
     marginBottom: 20,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#F1F5F9',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 16,
@@ -156,14 +156,12 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#6B7280',
   },
   scrollContent: {
     padding: 24,
     paddingBottom: 100,
   },
   card: {
-    backgroundColor: 'white',
     borderRadius: 28,
     padding: 32,
     shadowColor: "#0F172A",
@@ -172,7 +170,6 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     alignItems: 'center',
   },
   cardHeader: {
@@ -184,23 +181,19 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
   },
   calorieInput: {
     fontSize: 72,
     fontWeight: '800',
-    color: '#0F172A',
     textAlign: 'center',
     minWidth: 200,
     borderBottomWidth: 3,
-    borderBottomColor: Colors.light.primary,
     paddingVertical: 16,
     marginBottom: 12,
   },
   unitLabel: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#64748B',
   },
   footer: {
     position: 'absolute',
@@ -208,8 +201,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 24,
-    paddingBottom: 34,
-    backgroundColor: 'white',
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     shadowColor: "#000",
@@ -217,16 +209,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 10,
+    borderTopWidth: 1,
   },
   logButton: {
-    backgroundColor: Colors.light.primary,
     height: 60,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logButtonDisabled: {
-    backgroundColor: '#94A3B8',
+    opacity: 0.6,
   },
   logButtonText: {
     color: 'white',

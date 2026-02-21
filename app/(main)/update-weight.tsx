@@ -1,5 +1,6 @@
+import AppLoader from "@/components/ui/AppLoader";
 import { db } from "@/config/firebaseConfig";
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { useUser } from "@clerk/clerk-expo";
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
@@ -7,8 +8,8 @@ import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "fir
 import { ArrowLeft01Icon, Tick02Icon } from "hugeicons-react-native";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
+    Platform,
     SafeAreaView,
     StyleSheet,
     Text,
@@ -21,6 +22,7 @@ import { RulerPicker } from "react-native-ruler-picker";
 export default function UpdateWeightScreen() {
     const { user } = useUser();
     const router = useRouter();
+    const { colors, isDark } = useTheme();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [initialWeight, setInitialWeight] = useState(70);
@@ -82,19 +84,22 @@ export default function UpdateWeightScreen() {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.light.primary} />
+            <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+                <AppLoader size={60} label="Loading weight..." />
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeft01Icon size={24} color="#0F172A" />
+                <TouchableOpacity 
+                    onPress={() => router.back()} 
+                    style={[styles.backButton, { backgroundColor: isDark ? colors.surface : '#F8FAFC' }]}
+                >
+                    <ArrowLeft01Icon size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Update Weight</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Update Weight</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -103,10 +108,10 @@ export default function UpdateWeightScreen() {
                     entering={FadeInDown.duration(600)}
                     style={styles.infoBox}
                 >
-                    <Text style={styles.label}>Selected Weight</Text>
+                    <Text style={[styles.label, { color: colors.textMuted }]}>Selected Weight</Text>
                     <View style={styles.valueRow}>
-                        <Text style={styles.valueText}>{selectedWeight}</Text>
-                        <Text style={styles.unitText}>kg</Text>
+                        <Text style={[styles.valueText, { color: colors.primary }]}>{selectedWeight}</Text>
+                        <Text style={[styles.unitText, { color: colors.textMuted }]}>kg</Text>
                     </View>
                 </Animated.View>
 
@@ -121,27 +126,31 @@ export default function UpdateWeightScreen() {
                         unit="kg"
                         width={300}
                         height={120}
-                        indicatorColor={Colors.light.primary}
-                        longStepColor="#475569"
-                        shortStepColor="#CBD5E1"
+                        indicatorColor={colors.primary}
+                        longStepColor={isDark ? colors.textSecondary : "#475569"}
+                        shortStepColor={isDark ? 'rgba(255,255,255,0.1)' : "#CBD5E1"}
                         valueTextStyle={styles.rulerValueText}
                         unitTextStyle={styles.rulerUnitText}
                     />
                 </View>
 
-                <Text style={styles.hint}>
+                <Text style={[styles.hint, { color: colors.textMuted }]}>
                     Swipe the ruler to adjust your weight. We'll track this over time to show your progress!
                 </Text>
             </View>
 
             <View style={styles.bottomContainer}>
                 <TouchableOpacity 
-                    style={[styles.updateButton, saving && styles.disabledButton]}
+                    style={[
+                        styles.updateButton, 
+                        { backgroundColor: colors.primary, shadowColor: colors.primary },
+                        saving && styles.disabledButton
+                    ]}
                     onPress={handleUpdateWeight}
                     disabled={saving}
                 >
                     {saving ? (
-                        <ActivityIndicator color="white" />
+                        <AppLoader size={30} />
                     ) : (
                         <>
                             <Tick02Icon size={20} color="white" variant="stroke" />
@@ -157,34 +166,30 @@ export default function UpdateWeightScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
-        paddingTop: 60,
+        paddingTop: Platform.OS === 'android' ? 40 : 20,
         marginBottom: 20,
     },
     backButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#F8FAFC',
         alignItems: 'center',
         justifyContent: 'center',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#0F172A',
     },
     content: {
         flex: 1,
@@ -198,7 +203,6 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#64748B',
         marginBottom: 8,
     },
     valueRow: {
@@ -209,12 +213,10 @@ const styles = StyleSheet.create({
     valueText: {
         fontSize: 64,
         fontWeight: '900',
-        color: Colors.light.primary,
     },
     unitText: {
         fontSize: 24,
         fontWeight: '700',
-        color: '#64748B',
     },
     pickerContainer: {
         height: 150,
@@ -222,14 +224,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     rulerValueText: {
-        fontSize: 0, // Hide internal value text, we use our own
+        fontSize: 1, // Must be positive on Android
+        color: 'transparent',
     },
     rulerUnitText: {
-        fontSize: 0, // Hide internal unit text
+        fontSize: 1, // Must be positive on Android
+        color: 'transparent',
     },
     hint: {
         fontSize: 14,
-        color: '#94A3B8',
         textAlign: 'center',
         paddingHorizontal: 48,
         lineHeight: 20,
@@ -237,17 +240,15 @@ const styles = StyleSheet.create({
     },
     bottomContainer: {
         padding: 24,
-        paddingBottom: 40,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     },
     updateButton: {
-        backgroundColor: Colors.light.primary,
         flexDirection: 'row',
         height: 60,
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
-        shadowColor: Colors.light.primary,
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.2,
         shadowRadius: 15,

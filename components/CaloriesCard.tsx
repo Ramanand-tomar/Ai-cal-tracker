@@ -1,5 +1,6 @@
 import EditMacrosModal from "@/components/EditMacrosModal";
 import { SegmentedHalfCircleProgress30 } from "@/components/HalfProgress";
+import { useTheme } from "@/context/ThemeContext";
 import { Activity01Icon, Edit01Icon, FireIcon, MenuRestaurantIcon } from "hugeicons-react-native";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -24,6 +25,7 @@ export default function CaloriesCard({
   onUpdateGoals
 }: CaloriesCardProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const { colors, isDark } = useTheme();
   const progress = Math.min(consumed / total, 1);
   
   const proteinLeft = Math.max(0, proteinGoal - protein);
@@ -31,19 +33,23 @@ export default function CaloriesCard({
   const fatLeft = Math.max(0, fatGoal - fat);
 
   return (
-    <View className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
+    <View 
+      style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      className="p-6 rounded-[32px] border shadow-sm overflow-hidden"
+    >
       <View className="flex-row justify-between items-start mb-2">
         <View>
-          <Text className="text-gray-400 font-medium text-sm mb-1">Remaining Calories</Text>
-          <Text className="text-gray-900 font-bold text-4xl">{remaining}</Text>
+          <Text style={{ color: colors.textSecondary }} className="font-medium text-sm mb-1">Remaining Calories</Text>
+          <Text style={{ color: colors.text }} className="font-bold text-4xl">{remaining}</Text>
         </View>
         
         <TouchableOpacity 
-          className="p-2 bg-gray-50 rounded-xl border border-gray-100"
+          style={{ backgroundColor: isDark ? colors.background : '#F9FAFB', borderColor: colors.border }}
+          className="p-2 rounded-xl border"
           activeOpacity={0.7}
           onPress={() => setIsModalVisible(true)}
         >
-          <Edit01Icon size={20} color="#374151" />
+          <Edit01Icon size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -60,44 +66,59 @@ export default function CaloriesCard({
       </View>
 
       <View className="mt-8">
-        <View className="flex-row justify-between mb-6 px-4 py-4 bg-primary-50 rounded-3xl border border-primary-100/50">
+        <View 
+          style={{ 
+            backgroundColor: isDark ? 'rgba(41, 143, 80, 0.1)' : colors.primaryLight,
+            borderColor: isDark ? 'rgba(41, 143, 80, 0.2)' : 'rgba(41, 143, 80, 0.1)'
+          }}
+          className="flex-row justify-between mb-6 px-4 py-4 rounded-3xl border"
+        >
           <View className="items-center flex-1">
-            <Text className="text-primary-700 text-[10px] font-bold uppercase tracking-wider mb-1">Goal</Text>
-            <Text className="text-primary-900 font-bold text-xl">{total}</Text>
+            <Text style={{ color: isDark ? colors.primary : colors.primaryDark }} className="text-[10px] font-bold uppercase tracking-wider mb-1">Goal</Text>
+            <Text style={{ color: isDark ? colors.text : colors.primaryDark }} className="font-bold text-xl">{total}</Text>
           </View>
-          <View className="w-[1px] h-10 bg-primary-200/50 self-center" />
+          <View style={{ backgroundColor: isDark ? 'rgba(41, 143, 80, 0.3)' : 'rgba(41, 143, 80, 0.1)' }} className="w-[1px] h-10 self-center" />
           <View className="items-center flex-1">
-            <Text className="text-primary-700 text-[10px] font-bold uppercase tracking-wider mb-1">Consumed</Text>
-            <Text className="text-primary-900 font-bold text-xl">{consumed}</Text>
+            <Text style={{ color: isDark ? colors.primary : colors.primaryDark }} className="text-[10px] font-bold uppercase tracking-wider mb-1">Consumed</Text>
+            <Text style={{ color: isDark ? colors.text : colors.primaryDark }} className="font-bold text-xl">{consumed}</Text>
           </View>
         </View>
 
         <View className="flex-row" style={{ gap: 12 }}>
           {/* Protein Card */}
-          <View className="flex-1 bg-primary-50 p-4 rounded-2xl border border-primary-100/30 items-center">
-            <View className="w-12 h-12 rounded-2xl bg-blue-100 items-center justify-center mb-3">
+          <View 
+            style={{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF', borderColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#DBEAFE' }}
+            className="flex-1 p-4 rounded-2xl border items-center"
+          >
+            <View style={{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#DBEAFE' }} className="w-12 h-12 rounded-2xl items-center justify-center mb-3">
               <Activity01Icon size={24} color="#3b82f6" />
             </View>
-            <Text className="text-gray-500 text-[10px] font-bold uppercase mb-1">Protein left</Text>
-            <Text className="text-gray-900 font-bold text-base">{proteinLeft}g</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-[8px] font-bold uppercase mb-1">Protein left</Text>
+            <Text style={{ color: colors.text }} className="font-bold text-base">{proteinLeft.toFixed(1)}g</Text>
           </View>
 
           {/* Carbs Card */}
-          <View className="flex-1 bg-primary-50 p-4 rounded-2xl border border-primary-100/30 items-center">
-            <View className="w-12 h-12 rounded-2xl bg-orange-100 items-center justify-center mb-3">
+          <View 
+            style={{ backgroundColor: isDark ? 'rgba(249, 115, 22, 0.1)' : '#FFF7ED', borderColor: isDark ? 'rgba(249, 115, 22, 0.2)' : '#FFEDD5' }}
+            className="flex-1 p-4 rounded-2xl border items-center"
+          >
+            <View style={{ backgroundColor: isDark ? 'rgba(249, 115, 22, 0.2)' : '#FFEDD5' }} className="w-12 h-12 rounded-2xl items-center justify-center mb-3">
               <MenuRestaurantIcon size={24} color="#f97316" />
             </View>
-            <Text className="text-gray-500 text-[10px] font-bold uppercase mb-1">Carbs left</Text>
-            <Text className="text-gray-900 font-bold text-base">{carbsLeft}g</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-[8px] font-bold uppercase mb-1">Carbs left</Text>
+            <Text style={{ color: colors.text }} className="font-bold text-base">{carbsLeft.toFixed(1)}g</Text>
           </View>
 
           {/* Fat Card */}
-          <View className="flex-1 bg-primary-50 p-4 rounded-2xl border border-primary-100/30 items-center">
-            <View className="w-12 h-12 rounded-2xl bg-yellow-100 items-center justify-center mb-3">
+          <View 
+            style={{ backgroundColor: isDark ? 'rgba(234, 179, 8, 0.1)' : '#FEFCE8', borderColor: isDark ? 'rgba(234, 179, 8, 0.2)' : '#FEF9C3' }}
+            className="flex-1 p-4 rounded-2xl border items-center"
+          >
+            <View style={{ backgroundColor: isDark ? 'rgba(234, 179, 8, 0.2)' : '#FEF9C3' }} className="w-12 h-12 rounded-2xl items-center justify-center mb-3">
               <FireIcon size={24} color="#eab308" />
             </View>
-            <Text className="text-gray-500 text-[10px] font-bold uppercase mb-1">Fat left</Text>
-            <Text className="text-gray-900 font-bold text-base">{fatLeft}g</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-[8px] font-bold uppercase mb-1">Fat left</Text>
+            <Text style={{ color: colors.text }} className="font-bold text-base">{fatLeft.toFixed(1)}g</Text>
           </View>
         </View>
       </View>
@@ -111,3 +132,4 @@ export default function CaloriesCard({
     </View>
   );
 }
+

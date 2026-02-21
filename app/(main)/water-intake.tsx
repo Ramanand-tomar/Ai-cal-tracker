@@ -1,30 +1,32 @@
+import AppLoader from '@/components/ui/AppLoader';
 import { db } from '@/config/firebaseConfig';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { ArrowLeft01Icon, MinusSignIcon, PlusSignIcon } from 'hugeicons-react-native';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
     Alert,
     Image,
+    Platform,
     SafeAreaView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 
 export default function WaterIntakeScreen() {
   const router = useRouter();
   const { userId } = useAuth();
+  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [halfGlassCount, setHalfGlassCount] = useState(0); // 0 to 8
+  const [halfGlassCount, setHalfGlassCount] = useState(0);
 
   const GLASS_VOLUME_ML = 250;
   const HALF_GLASS_VOLUME = GLASS_VOLUME_ML / 2;
-  const MAX_HALF_GLASSES = 8; // 4 Full glasses
+  const MAX_HALF_GLASSES = 8;
 
   const totalMl = halfGlassCount * HALF_GLASS_VOLUME;
 
@@ -54,12 +56,11 @@ export default function WaterIntakeScreen() {
       await addDoc(collection(db, 'dailyLogs'), {
         userId,
         date: today,
-        type: 'water', // Distinct type for water logs
-        amount: totalMl, // stored in ml (e.g. 500)
+        type: 'water',
+        amount: totalMl,
         timestamp: serverTimestamp(),
       });
 
-      console.log('Water logged successfully');
       router.push('/');
     } catch (error) {
       console.error('Error logging water:', error);
@@ -84,7 +85,6 @@ export default function WaterIntakeScreen() {
     const hasHalf = halfGlassCount % 2 !== 0;
     const glasses = [];
 
-    // Render Full Glasses
     for (let i = 0; i < fullGlasses; i++) {
       glasses.push(
         <Image 
@@ -96,7 +96,6 @@ export default function WaterIntakeScreen() {
       );
     }
 
-    // Render Half Glass if needed
     if (hasHalf) {
       glasses.push(
         <Image 
@@ -112,63 +111,63 @@ export default function WaterIntakeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity 
           onPress={() => router.back()} 
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: isDark ? colors.surface : 'white' }]}
         >
-          <ArrowLeft01Icon size={24} color="#111827" />
+          <ArrowLeft01Icon size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Water Intake</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Add Water Intake</Text>
         <View style={{ width: 40 }} /> 
       </View>
 
       <View style={styles.content}>
-        {/* Visualizer */}
         <View style={styles.visualizerContainer}>
           {renderGlasses()}
         </View>
 
-        {/* Controls */}
-        <View style={styles.controlsContainer}>
+        <View style={[styles.controlsContainer, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}>
           <TouchableOpacity 
-            style={[styles.controlButton, halfGlassCount === 0 && styles.controlButtonDisabled]}
+            style={[styles.controlButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }, halfGlassCount === 0 && styles.controlButtonDisabled]}
             onPress={handleDecrement}
             disabled={halfGlassCount === 0}
           >
-            <MinusSignIcon size={32} color={halfGlassCount === 0 ? '#CBD5E1' : '#0F172A'} />
+            <MinusSignIcon size={32} color={halfGlassCount === 0 ? colors.textMuted : colors.text} />
           </TouchableOpacity>
 
           <View style={styles.amountDisplay}>
-            <Text style={styles.amountText}>{totalMl}</Text>
-            <Text style={styles.unitText}>ml</Text>
+            <Text style={[styles.amountText, { color: colors.primary }]}>{totalMl}</Text>
+            <Text style={[styles.unitText, { color: colors.textSecondary }]}>ml</Text>
           </View>
 
           <TouchableOpacity 
-            style={[styles.controlButton, halfGlassCount === MAX_HALF_GLASSES && styles.controlButtonDisabled]}
+            style={[styles.controlButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }, halfGlassCount === MAX_HALF_GLASSES && styles.controlButtonDisabled]}
             onPress={handleIncrement}
             disabled={halfGlassCount === MAX_HALF_GLASSES}
           >
-            <PlusSignIcon size={32} color={halfGlassCount === MAX_HALF_GLASSES ? '#CBD5E1' : '#0F172A'} />
+            <PlusSignIcon size={32} color={halfGlassCount === MAX_HALF_GLASSES ? colors.textMuted : colors.text} />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.helperText}>
+        <Text style={[styles.helperText, { color: colors.textMuted }]}>
           1 Half Glass = {HALF_GLASS_VOLUME}ml • Full Glass = {GLASS_VOLUME_ML}ml
         </Text>
       </View>
 
-      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity 
-          style={[styles.logButton, (loading || totalMl === 0) && styles.logButtonDisabled]}
+          style={[
+            styles.logButton, 
+            { backgroundColor: colors.primary, shadowColor: colors.primary },
+            (loading || totalMl === 0) && styles.logButtonDisabled
+          ]}
           onPress={handleLogWater}
           disabled={loading || totalMl === 0}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <AppLoader size={30} />
           ) : (
             <Text style={styles.logButtonText}>Log Water</Text>
           )}
@@ -181,21 +180,19 @@ export default function WaterIntakeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: Platform.OS === 'ios' ? 20 : 60,
     marginBottom: 20,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: "#000",
@@ -207,7 +204,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#0F172A',
   },
   content: {
     flex: 1,
@@ -234,7 +230,7 @@ const styles = StyleSheet.create({
     height: 300,
   },
   glassImageSmall: {
-    width: 80, // Smaller when multiple
+    width: 80,
     height: 120,
   },
   controlsContainer: {
@@ -243,9 +239,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     maxWidth: 300,
-    backgroundColor: 'white',
     borderRadius: 24,
     padding: 16,
+    borderWidth: 1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -257,7 +253,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 20,
-    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -270,30 +265,25 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 32,
     fontWeight: '800',
-    color: Colors.light.primary,
     lineHeight: 38,
   },
   unitText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#64748B',
   },
   helperText: {
     fontSize: 14,
-    color: '#94A3B8',
     textAlign: 'center',
   },
   footer: {
     padding: 24,
-    paddingBottom: 34,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
   },
   logButton: {
-    backgroundColor: Colors.light.primary,
     height: 60,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,

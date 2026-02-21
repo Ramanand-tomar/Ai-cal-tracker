@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeContext";
 import React from "react";
 import { StyleSheet, Text, View, ViewStyle } from "react-native";
 
@@ -15,29 +16,42 @@ export default function BentoCard({
   children, 
   description, 
   style, 
-  labelColor = '#64748B',
+  labelColor,
   variant = 'default'
 }: BentoCardProps) {
+  const { colors, isDark } = useTheme();
+  
+  const defaultLabelColor = colors.textMuted;
+  const finalLabelColor = labelColor || defaultLabelColor;
+
+  const cardBg = isDark ? colors.surface : variant === 'blue' ? '#F0F9FF' : '#F8FAFC';
+  const cardBorder = isDark 
+    ? (variant === 'blue' ? 'rgba(14, 165, 233, 0.2)' : colors.border) 
+    : (variant === 'blue' ? '#E0F2FE' : '#F1F5F9');
+
   return (
     <View style={[
       styles.card, 
-      variant === 'blue' && styles.blueCard,
+      { 
+        backgroundColor: cardBg, 
+        borderColor: cardBorder,
+        shadowColor: variant === 'blue' ? "#0EA5E9" : "#000",
+        shadowOpacity: isDark ? (variant === 'blue' ? 0.2 : 0) : 0.05
+      },
       style
     ]}>
-      <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+      <Text style={[styles.label, { color: finalLabelColor }]}>{label}</Text>
       {children}
-      {description && <Text style={styles.description}>{description}</Text>}
+      {description && <Text style={[styles.description, { color: colors.textMuted }]}>{description}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#F8FAFC',
     borderRadius: 28,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -60,7 +74,6 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#94A3B8',
     marginTop: 8,
   },
 });

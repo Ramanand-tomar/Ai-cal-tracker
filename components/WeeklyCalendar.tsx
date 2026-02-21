@@ -1,7 +1,8 @@
+import { useTheme } from "@/context/ThemeContext";
 import { addDays, format, isSameDay, startOfToday, startOfWeek, subDays } from "date-fns";
 import { ArrowLeft01Icon, ArrowRight01Icon } from "hugeicons-react-native";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const { width } = Dimensions.get("window");
 const PADDING = 24;
@@ -13,6 +14,7 @@ interface WeeklyCalendarProps {
 }
 
 export default function WeeklyCalendar({ onDateSelect, selectedDate }: WeeklyCalendarProps) {
+  const { colors, isDark } = useTheme();
   const today = startOfToday();
   
   // State for the start of the week being displayed (Monday as start)
@@ -49,25 +51,31 @@ export default function WeeklyCalendar({ onDateSelect, selectedDate }: WeeklyCal
         style={{ width: ITEM_WIDTH }}
         className="items-center justify-center py-2"
       >
-        <Text className={`text-[10px] font-bold uppercase mb-2 ${
-          isSelected ? "text-primary" : "text-gray-400"
-        }`}>
+        <Text 
+          style={{ color: isSelected ? colors.primary : colors.textMuted }}
+          className="text-[10px] font-bold uppercase mb-2"
+        >
           {format(item, "EEE")}
         </Text>
         
         <View 
-          className={`w-11 h-11 rounded-2xl items-center justify-center border-2 ${
-            isSelected ? "border-primary bg-primary-50" : "border-transparent"
-          }`}
+          style={[
+            styles.dayCircle,
+            { 
+              borderColor: isSelected ? colors.primary : 'transparent',
+              backgroundColor: isSelected ? (isDark ? 'rgba(41, 143, 80, 0.2)' : colors.primaryLight) : 'transparent'
+            }
+          ]}
         >
-          <Text className={`text-base font-bold ${
-            isSelected ? "text-primary-900" : "text-gray-900"
-          }`}>
+          <Text 
+            style={{ color: isSelected ? (isDark ? colors.text : colors.primaryDark) : colors.text }}
+            className="text-base font-bold"
+          >
             {format(item, "d")}
           </Text>
           
           {isToday && !isSelected && (
-            <View className="absolute bottom-1.5 w-1 h-1 rounded-full bg-primary" />
+            <View style={{ backgroundColor: colors.primary }} className="absolute bottom-1.5 w-1 h-1 rounded-full" />
           )}
         </View>
       </TouchableOpacity>
@@ -75,26 +83,28 @@ export default function WeeklyCalendar({ onDateSelect, selectedDate }: WeeklyCal
   };
 
   return (
-    <View className="py-2 bg-white">
+    <View style={{ backgroundColor: colors.background }} className="py-2">
       {/* Calendar Header */}
       <View className="flex-row items-center justify-between px-6 mb-4">
-        <Text className="text-lg font-bold text-gray-900">
+        <Text style={{ color: colors.text }} className="text-lg font-bold">
           {format(weekStart, "MMMM yyyy")}
         </Text>
         
         <View className="flex-row space-x-4">
           <TouchableOpacity 
             onPress={goToPreviousWeek}
-            className="p-2 rounded-xl bg-gray-50 border border-gray-100"
+            style={{ backgroundColor: isDark ? colors.surface : colors.border, borderColor: colors.border }}
+            className="p-2 rounded-xl border"
           >
-            <ArrowLeft01Icon size={20} color="#374151" />
+            <ArrowLeft01Icon size={20} color={colors.text} />
           </TouchableOpacity>
           <View className="w-2" />
           <TouchableOpacity 
             onPress={goToNextWeek}
-            className="p-2 rounded-xl bg-gray-50 border border-gray-100"
+            style={{ backgroundColor: isDark ? colors.surface : colors.border, borderColor: colors.border }}
+            className="p-2 rounded-xl border"
           >
-            <ArrowRight01Icon size={20} color="#374151" />
+            <ArrowRight01Icon size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -106,3 +116,15 @@ export default function WeeklyCalendar({ onDateSelect, selectedDate }: WeeklyCal
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  dayCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 16,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+});
+

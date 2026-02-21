@@ -1,5 +1,6 @@
+import AppLoader from "@/components/ui/AppLoader";
 import { db } from "@/config/firebaseConfig";
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
@@ -12,10 +13,10 @@ import {
 } from "hugeicons-react-native";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Dimensions,
     Image,
+    Platform,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -31,6 +32,7 @@ export default function AIResultScreen() {
     const { foodData, imageUri } = useLocalSearchParams();
     const router = useRouter();
     const { user } = useUser();
+    const { colors, isDark } = useTheme();
     const [loading, setLoading] = useState(false);
 
     // Parse the AI result
@@ -79,21 +81,24 @@ export default function AIResultScreen() {
     if (!result) return null;
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <ArrowLeft01Icon size={24} color="#111827" />
+                    <TouchableOpacity 
+                        onPress={() => router.back()} 
+                        style={[styles.backButton, { backgroundColor: isDark ? colors.surface : 'white' }]}
+                    >
+                        <ArrowLeft01Icon size={24} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Review Analysis</Text>
+                    <Text style={[styles.headerTitle, { color: colors.text }]}>Review Analysis</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
                 {/* Content */}
                 <View style={styles.content}>
                     {/* Image Thumbnail */}
-                    <View style={styles.imagePreviewContainer}>
+                    <View style={[styles.imagePreviewContainer, { backgroundColor: isDark ? colors.surface : '#E2E8F0' }]}>
                         <Image source={{ uri: imageUri as string }} style={styles.image} />
                         <View style={styles.confidenceBadge}>
                             <Text style={styles.confidenceText}>
@@ -103,32 +108,33 @@ export default function AIResultScreen() {
                     </View>
 
                     {/* Food Name Card */}
-                    <View style={styles.inputCard}>
+                    <View style={[styles.inputCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}>
                         <View style={styles.inputHeader}>
-                            <Text style={styles.inputLabel}>Food Name</Text>
-                            <Edit01Icon size={16} color="#94A3B8" />
+                            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Food Name</Text>
+                            <Edit01Icon size={16} color={colors.textMuted} />
                         </View>
                         <TextInput
-                            style={styles.nameInput}
+                            style={[styles.nameInput, { color: colors.text }]}
                             value={foodName}
                             onChangeText={setFoodName}
                             placeholder="Food name"
+                            placeholderTextColor={colors.textMuted}
                         />
                     </View>
 
                     {/* Macros Grid */}
                     <View style={styles.statsContainer}>
                         <View style={styles.mainStatsRow}>
-                            <View style={[styles.statBox, { backgroundColor: '#FFF7ED' }]}>
+                            <View style={[styles.statBox, { backgroundColor: isDark ? 'rgba(249, 115, 22, 0.1)' : '#FFF7ED' }]}>
                                 <FireIcon size={24} color="#EA580C" variant="stroke" />
                                 <View style={styles.statInfo}>
                                     <TextInput
-                                        style={styles.statValue}
+                                        style={[styles.statValue, { color: colors.text }]}
                                         value={calories}
                                         onChangeText={setCalories}
                                         keyboardType="numeric"
                                     />
-                                    <Text style={styles.statLabel}>Calories</Text>
+                                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Calories</Text>
                                 </View>
                             </View>
                         </View>
@@ -138,43 +144,46 @@ export default function AIResultScreen() {
                                 label="Protein" 
                                 value={protein} 
                                 color="#3B82F6" 
-                                bgColor="#EFF6FF" 
+                                bgColor={isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF'}
+                                colors={colors} 
                                 onChange={setProtein}
                             />
                             <MacroItem 
                                 label="Carbs" 
                                 value={carbs} 
                                 color="#10B981" 
-                                bgColor="#ECFDF5" 
+                                bgColor={isDark ? 'rgba(16, 185, 129, 0.1)' : '#ECFDF5'}
+                                colors={colors} 
                                 onChange={setCarbs}
                             />
                             <MacroItem 
                                 label="Fats" 
                                 value={fat} 
                                 color="#F59E0B" 
-                                bgColor="#FFFBEB" 
+                                bgColor={isDark ? 'rgba(245, 158, 11, 0.1)' : '#FFFBEB'}
+                                colors={colors} 
                                 onChange={setFat}
                             />
                         </View>
                     </View>
 
-                    <View style={styles.aiNote}>
-                        <AlertCircleIcon size={16} color="#64748B" />
-                        <Text style={styles.aiNoteText}>
+                    <View style={[styles.aiNote, { backgroundColor: isDark ? colors.surface : '#f1f5f9' }]}>
+                        <AlertCircleIcon size={16} color={colors.textMuted} />
+                        <Text style={[styles.aiNoteText, { color: colors.textSecondary }]}>
                             Gemini AI estimated these values based on the image. You can tweak them if needed.
                         </Text>
                     </View>
                 </View>
             </ScrollView>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
                 <TouchableOpacity 
-                    style={[styles.logButton, loading && styles.disabledButton]} 
+                    style={[styles.logButton, { backgroundColor: colors.primary, shadowColor: colors.primary }, loading && styles.disabledButton]} 
                     onPress={handleLogFood}
                     disabled={loading}
                 >
                     {loading ? (
-                        <ActivityIndicator color="white" />
+                        <AppLoader size={30} />
                     ) : (
                         <>
                             <Tick02Icon size={22} color="white" variant="stroke" />
@@ -187,7 +196,7 @@ export default function AIResultScreen() {
     );
 }
 
-const MacroItem = ({ label, value, color, bgColor, onChange }: any) => (
+const MacroItem = ({ label, value, color, bgColor, colors, onChange }: any) => (
     <View style={[styles.macroBox, { backgroundColor: bgColor }]}>
         <TextInput
             style={[styles.macroValue, { color }]}
@@ -195,14 +204,13 @@ const MacroItem = ({ label, value, color, bgColor, onChange }: any) => (
             onChangeText={onChange}
             keyboardType="numeric"
         />
-        <Text style={styles.macroLabel}>{label} (g)</Text>
+        <Text style={[styles.macroLabel, { color: colors.textMuted }]}>{label} (g)</Text>
     </View>
 );
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
     },
     scrollContent: {
         paddingBottom: 120,
@@ -212,14 +220,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
-        paddingTop: 60,
+        paddingTop: Platform.OS === 'ios' ? 20 : 60,
         marginBottom: 24,
     },
     backButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: "#000",
@@ -231,7 +238,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#0F172A',
     },
     content: {
         paddingHorizontal: 24,
@@ -243,7 +249,6 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         marginBottom: 24,
         position: 'relative',
-        backgroundColor: '#E2E8F0',
     },
     image: {
         width: '100%',
@@ -264,17 +269,14 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     inputCard: {
-        backgroundColor: 'white',
         padding: 20,
         borderRadius: 24,
         borderWidth: 1,
-        borderColor: '#F1F5F9',
         marginBottom: 20,
     },
     inputLabel: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#64748B',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
         marginBottom: 8,
@@ -282,7 +284,6 @@ const styles = StyleSheet.create({
     nameInput: {
         fontSize: 20,
         fontWeight: '800',
-        color: '#0F172A',
         padding: 0,
     },
     inputHeader: {
@@ -311,13 +312,11 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 28,
         fontWeight: '900',
-        color: '#0F172A',
         padding: 0,
     },
     statLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#64748B',
     },
     macrosRow: {
         flexDirection: 'row',
@@ -338,12 +337,10 @@ const styles = StyleSheet.create({
     macroLabel: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#64748B',
         marginTop: 4,
     },
     aiNote: {
         flexDirection: 'row',
-        backgroundColor: '#f1f5f9',
         padding: 16,
         borderRadius: 16,
         alignItems: 'center',
@@ -352,7 +349,6 @@ const styles = StyleSheet.create({
     aiNoteText: {
         flex: 1,
         fontSize: 12,
-        color: '#64748B',
         lineHeight: 18,
         fontWeight: '500',
     },
@@ -361,19 +357,17 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'rgba(248, 250, 252, 0.9)',
         padding: 24,
-        paddingBottom: 40,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        borderTopWidth: 1,
     },
     logButton: {
-        backgroundColor: Colors.light.primary,
         height: 60,
         borderRadius: 20,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
-        shadowColor: Colors.light.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 10,

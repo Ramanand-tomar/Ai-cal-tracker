@@ -1,5 +1,5 @@
 import QuickActionModal from "@/components/QuickActionModal";
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/hooks/useTheme";
 import { Tabs } from "expo-router";
 import { Add01Icon, Analytics01Icon, Home01Icon, UserIcon } from "hugeicons-react-native";
 import React, { useState } from "react";
@@ -7,6 +7,7 @@ import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function MainLayout() {
   const [isQuickActionVisible, setIsQuickActionVisible] = useState(false);
+  const { colors, isDark } = useTheme();
 
   return (
     <>
@@ -14,9 +15,9 @@ export default function MainLayout() {
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarStyle: styles.tabBar,
-          tabBarActiveTintColor: Colors.light.primary,
-          tabBarInactiveTintColor: "#9CA3AF",
+          tabBarStyle: [styles.tabBar, { backgroundColor: colors.surface }],
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: isDark ? colors.textMuted : "#9CA3AF",
         }}
       >
         <Tabs.Screen
@@ -51,6 +52,7 @@ export default function MainLayout() {
           name="log-exercise"
           options={{
             href: null,
+            tabBarStyle: { display: 'none' },
           }}
         />
 
@@ -166,27 +168,31 @@ export default function MainLayout() {
   );
 }
 
-const PlusButton = ({ onPress }: { onPress: () => void }) => (
-  <TouchableOpacity
-    activeOpacity={0.8}
-    onPress={onPress}
-    className="items-center justify-center"
-    style={styles.plusButtonContainer}
-  >
-    <View 
-      className="w-16 h-16 rounded-full bg-primary items-center justify-center shadow-lg"
-      style={{
-        shadowColor: Colors.light.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-      }}
+const PlusButton = ({ onPress }: { onPress: () => void }) => {
+  const { colors } = useTheme();
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onPress}
+      className="items-center justify-center"
+      style={styles.plusButtonContainer}
     >
-      <Add01Icon size={32} color="white" />
-    </View>
-  </TouchableOpacity>
-);
+      <View 
+        className="w-16 h-16 rounded-full items-center justify-center shadow-lg"
+        style={{
+          backgroundColor: colors.primary,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+      >
+        <Add01Icon size={32} color="white" />
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   tabBar: {
@@ -194,7 +200,6 @@ const styles = StyleSheet.create({
     bottom: 30,
     left: 20,
     right: 20,
-    backgroundColor: "white",
     borderRadius: 30,
     height: 70,
     paddingBottom: Platform.OS === "ios" ? 0 : 0,

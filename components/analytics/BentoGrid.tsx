@@ -1,5 +1,4 @@
-import Colors from "@/constants/Colors";
-import { DropletIcon } from "hugeicons-react-native";
+import { useTheme } from "@/context/ThemeContext";
 import React from "react";
 import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
 import BentoCard from "./BentoCard";
@@ -12,19 +11,21 @@ interface BentoGridProps {
 }
 
 export default function BentoGrid({ insights, isLoading }: BentoGridProps) {
+  const { colors, isDark } = useTheme();
+
   if (isLoading && !insights) {
     return (
-      <View style={styles.aiLoadingContainer}>
-        <ActivityIndicator size="small" color={Colors.light.primary} />
-        <Text style={styles.aiLoadingText}>AI is analyzing your week...</Text>
+      <View style={[styles.aiLoadingContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={[styles.aiLoadingText, { color: colors.textSecondary }]}>AI is analyzing your week...</Text>
       </View>
     );
   }
 
   if (!insights) {
     return (
-      <View style={styles.placeholderCard}>
-        <Text style={styles.placeholderText}>Log some data to see AI insights</Text>
+      <View style={[styles.placeholderCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Log some data to see AI insights</Text>
       </View>
     );
   }
@@ -38,8 +39,8 @@ export default function BentoGrid({ insights, isLoading }: BentoGridProps) {
         style={styles.healthScoreCard}
       >
         <View style={styles.healthScoreContainer}>
-          <Text style={styles.healthScoreValue}>{insights.healthScore}</Text>
-          <Text style={styles.healthScoreMax}>/100</Text>
+          <Text style={[styles.healthScoreValue, { color: colors.primary }]}>{insights.healthScore}</Text>
+          <Text style={[styles.healthScoreMax, { color: colors.textMuted }]}>/100</Text>
         </View>
       </BentoCard>
 
@@ -49,14 +50,14 @@ export default function BentoGrid({ insights, isLoading }: BentoGridProps) {
         <BentoCard label="Top Macro" style={styles.statCard}>
           <View style={styles.macroContent}>
             <Text style={styles.macroEmoji}>{insights.topMacro.icon}</Text>
-            <Text style={styles.macroName}>{insights.topMacro.name}</Text>
+            <Text style={[styles.macroName, { color: colors.text }]}>{insights.topMacro.name}</Text>
           </View>
-          <Text style={styles.macroValue}>{insights.topMacro.value}</Text>
+          <Text style={[styles.macroValue, { color: colors.textSecondary }]}>{insights.topMacro.value}</Text>
         </BentoCard>
 
         {/* Consistency - Small Card */}
         <BentoCard label="Activity" style={styles.statCard}>
-          <Text style={styles.consistencyText}>{insights.consistencyInsight}</Text>
+          <Text style={[styles.consistencyText, { color: colors.textSecondary }]}>{insights.consistencyInsight}</Text>
         </BentoCard>
       </View>
 
@@ -66,11 +67,10 @@ export default function BentoGrid({ insights, isLoading }: BentoGridProps) {
         variant="blue"
         style={styles.recommendationCard}
       >
-        {/* <View style={styles.recommendationHeader}>
-          <DropletIcon size={18} color="#0EA5E9" variant="stroke" />
-          <Text style={styles.recommendationHeaderText}>AI Recommendation</Text>
-        </View> */}
-        <Text style={styles.recommendationText}>{insights.recommendation}</Text>
+        <Text style={[
+          styles.recommendationText, 
+          { color: isDark ? (colors.primary === '#0A84FF' ? '#60A5FA' : colors.primary) : '#0369A1' }
+        ]}>{insights.recommendation}</Text>
       </BentoCard>
     </View>
   );
@@ -79,33 +79,27 @@ export default function BentoGrid({ insights, isLoading }: BentoGridProps) {
 const styles = StyleSheet.create({
   aiLoadingContainer: {
     height: 200,
-    backgroundColor: '#F8FAFC',
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
   },
   aiLoadingText: {
     fontSize: 14,
-    color: '#64748B',
     fontWeight: '600',
   },
   placeholderCard: {
     height: 180,
-    backgroundColor: '#F8FAFC',
     borderRadius: 28,
     borderStyle: 'dashed',
     borderWidth: 2,
-    borderColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
   },
   placeholderText: {
     fontSize: 14,
-    color: '#94A3B8',
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -126,13 +120,11 @@ const styles = StyleSheet.create({
   healthScoreValue: {
     fontSize: 54,
     fontWeight: '900',
-    color: Colors.light.primary,
     letterSpacing: -2,
   },
   healthScoreMax: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#CBD5E1',
     marginLeft: 4,
   },
   statsRow: {
@@ -157,39 +149,23 @@ const styles = StyleSheet.create({
   macroName: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#1E293B',
   },
   macroValue: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#64748B',
   },
   consistencyText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#334155',
     lineHeight: 20,
   },
   recommendationCard: {
     width: '100%',
   },
-  recommendationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  recommendationHeaderText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
   recommendationText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0369A1',
     lineHeight: 22,
   },
 });
+

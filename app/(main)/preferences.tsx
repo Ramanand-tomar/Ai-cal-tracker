@@ -1,28 +1,31 @@
+import AppLoader from "@/components/ui/AppLoader";
 import { db } from "@/config/firebaseConfig";
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
+import {
+    cancelAllNotifications,
+    requestNotificationPermissions,
+    scheduleReminders
+} from "@/utils/notifications";
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import {
     ArrowLeft01Icon,
-    Sun01Icon,
     MoonIcon,
     Notification01Icon,
     Settings02Icon,
+    Sun01Icon,
     Tick02Icon
 } from "hugeicons-react-native";
-import { useColorScheme } from "nativewind";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
     Platform,
     SafeAreaView,
     StyleSheet,
     Switch,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
@@ -31,14 +34,15 @@ type ThemeType = 'light' | 'dark' | 'system';
 export default function PreferencesScreen() {
     const { user } = useUser();
     const router = useRouter();
-    const { setColorScheme } = useColorScheme();
+    const { colors, isDark, theme: currentTheme, setTheme: setAppTheme } = useTheme();
     
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
     // Preference States
-    const [theme, setTheme] = useState<ThemeType>('light');
+    const [themePreference, setThemePreference] = useState<ThemeType>('light');
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [isSubscribed, setIsSubscribed] = useState(false);
 
     useEffect(() => {
         const fetchPreferences = async () => {
@@ -49,8 +53,9 @@ export default function PreferencesScreen() {
                 if (userSnap.exists()) {
                     const data = userSnap.data();
                     const savedTheme = (data.theme as ThemeType) || 'light';
-                    setTheme(savedTheme);
+                    setThemePreference(savedTheme);
                     setNotificationsEnabled(data.notificationsEnabled !== false);
+                    setIsSubscribed(data.isSubscribed || false);
                 }
             } catch (error) {
                 console.error("Error fetching preferences:", error);
@@ -68,13 +73,28 @@ export default function PreferencesScreen() {
         try {
             const userRef = doc(db, "users", user.id);
             await updateDoc(userRef, {
-                theme,
+                theme: themePreference,
                 notificationsEnabled,
                 updatedAt: serverTimestamp()
             });
 
-            // Update app theme locally
-            setColorScheme(theme);
+            // Update app theme locally using context
+            setAppTheme(themePreference);
+
+            // Handle Notifications Scheduling
+            if (notificationsEnabled) {
+                const hasPermission = await requestNotificationPermissions();
+                if (hasPermission) {
+                    await scheduleReminders(isSubscribed);
+                } else {
+                    Alert.alert(
+                        "Permission Required", 
+                        "Please enable notification permissions in your system settings to receive reminders."
+                    );
+                }
+            } else {
+                await cancelAllNotifications();
+            }
 
             Alert.alert("Success", "Preferences saved successfully!");
             router.back();
@@ -88,19 +108,19 @@ export default function PreferencesScreen() {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.light.primary} />
+            <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+                <AppLoader label="Loading preferences..." />
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeft01Icon size={24} color="#0F172A" />
+                <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: isDark ? colors.surface : '#F8FAFC' }]}>
+                    <ArrowLeft01Icon size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Preferences</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Preferences</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -108,64 +128,74 @@ export default function PreferencesScreen() {
                 {/* Theme Selection */}
                 <Animated.View entering={FadeInDown.duration(600).delay(100)} style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Settings02Icon size={20} color="#64748B" />
-                        <Text style={styles.sectionTitle}>App Theme</Text>
+                        <Settings02Icon size={20} color={colors.textMuted} />
+                        <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>App Theme</Text>
                     </View>
                     
                     <View style={styles.themeContainer}>
                         <ThemeOption 
                             label="Light" 
-                            isActive={theme === 'light'} 
-                            onPress={() => setTheme('light')}
-                            icon={<Sun01Icon size={24} color={theme === 'light' ? 'white' : '#64748B'} />}
+                            isActive={themePreference === 'light'} 
+                            onPress={() => setThemePreference('light')}
+                            icon={<Sun01Icon size={24} color={themePreference === 'light' ? 'white' : (isDark ? colors.textMuted : "#64748B")} />}
+                            colors={colors}
+                            isDark={isDark}
                         />
                         <ThemeOption 
                             label="Dark" 
-                            isActive={theme === 'dark'} 
-                            onPress={() => setTheme('dark')}
-                            icon={<MoonIcon size={24} color={theme === 'dark' ? 'white' : '#64748B'} />}
+                            isActive={themePreference === 'dark'} 
+                            onPress={() => setThemePreference('dark')}
+                            icon={<MoonIcon size={24} color={themePreference === 'dark' ? 'white' : (isDark ? colors.textMuted : "#64748B")} />}
+                            colors={colors}
+                            isDark={isDark}
                         />
                         <ThemeOption 
                             label="System" 
-                            isActive={theme === 'system'} 
-                            onPress={() => setTheme('system')}
-                            icon={<Settings02Icon size={24} color={theme === 'system' ? 'white' : '#64748B'} />}
+                            isActive={themePreference === 'system'} 
+                            onPress={() => setThemePreference('system')}
+                            icon={<Settings02Icon size={24} color={themePreference === 'system' ? 'white' : (isDark ? colors.textMuted : "#64748B")} />}
+                            colors={colors}
+                            isDark={isDark}
                         />
                     </View>
-                    <Text style={styles.hintText}>Select how you want the app to look.</Text>
+                    <Text style={[styles.hintText, { color: colors.textMuted }]}>Select how you want the app to look.</Text>
                 </Animated.View>
 
                 {/* Notifications */}
                 <Animated.View entering={FadeInDown.duration(600).delay(200)} style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Notification01Icon size={20} color="#64748B" />
-                        <Text style={styles.sectionTitle}>Notifications</Text>
+                        <Notification01Icon size={20} color={colors.textMuted} />
+                        <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Notifications</Text>
                     </View>
                     
-                    <View style={styles.toggleCard}>
+                    <View style={[styles.toggleCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                         <View style={styles.toggleInfo}>
-                            <Text style={styles.toggleLabel}>Enable Notifications</Text>
-                            <Text style={styles.toggleDescription}>Receive daily reminders and insights.</Text>
+                            <Text style={[styles.toggleLabel, { color: colors.text }]}>Enable Notifications</Text>
+                            <Text style={[styles.toggleDescription, { color: colors.textSecondary }]}>Receive daily reminders and insights.</Text>
                         </View>
                         <Switch 
                             value={notificationsEnabled}
                             onValueChange={setNotificationsEnabled}
-                            trackColor={{ false: "#E2E8F0", true: "#DCFCE7" }}
-                            thumbColor={notificationsEnabled ? Colors.light.primary : "#94A3B8"}
+                            trackColor={{ false: isDark ? colors.background : "#E2E8F0", true: isDark ? "rgba(34, 197, 94, 0.4)" : "#DCFCE7" }}
+                            thumbColor={notificationsEnabled ? colors.primary : (isDark ? colors.textMuted : "#94A3B8")}
                         />
                     </View>
                 </Animated.View>
             </View>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { backgroundColor: isDark ? colors.surface : 'white', borderTopColor: colors.border }]}>
                 <TouchableOpacity 
-                    style={[styles.saveButton, saving && styles.disabledButton]}
+                    style={[
+                        styles.saveButton, 
+                        { backgroundColor: colors.primary, shadowColor: colors.primary },
+                        saving && styles.disabledButton
+                    ]}
                     onPress={handleSave}
                     disabled={saving}
                     activeOpacity={0.8}
                 >
                     {saving ? (
-                        <ActivityIndicator color="white" />
+                        <AppLoader size={24} />
                     ) : (
                         <>
                             <Tick02Icon size={20} color="white" variant="stroke" />
@@ -183,31 +213,43 @@ interface ThemeOptionProps {
     isActive: boolean;
     onPress: () => void;
     icon: React.ReactNode;
+    colors: any;
+    isDark: boolean;
 }
 
-const ThemeOption = ({ label, isActive, onPress, icon }: ThemeOptionProps) => (
+const ThemeOption = ({ label, isActive, onPress, icon, colors, isDark }: ThemeOptionProps) => (
     <TouchableOpacity 
         onPress={onPress}
-        style={[styles.themeOption, isActive && styles.activeThemeOption]}
+        style={[
+            styles.themeOption, 
+            { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border },
+            isActive && { borderColor: colors.primary, backgroundColor: isDark ? 'rgba(34, 197, 94, 0.1)' : '#F0FDF4' }
+        ]}
         activeOpacity={0.7}
     >
-        <View style={[styles.themeIconWrapper, isActive && styles.activeThemeIconWrapper]}>
+        <View style={[
+            styles.themeIconWrapper, 
+            { backgroundColor: isDark ? colors.background : '#F8FAFC' },
+            isActive && { backgroundColor: colors.primary }
+        ]}>
             {icon}
         </View>
-        <Text style={[styles.themeLabel, isActive && styles.activeThemeLabel]}>{label}</Text>
+        <Text style={[
+            styles.themeLabel, 
+            { color: colors.textMuted },
+            isActive && { color: colors.primary }
+        ]}>{label}</Text>
     </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
     },
     header: {
         flexDirection: 'row',
@@ -221,14 +263,12 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#F8FAFC',
         alignItems: 'center',
         justifyContent: 'center',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#0F172A',
     },
     content: {
         flex: 1,
@@ -247,7 +287,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 14,
         fontWeight: '800',
-        color: '#64748B',
         textTransform: 'uppercase',
         letterSpacing: 1,
     },
@@ -257,45 +296,30 @@ const styles = StyleSheet.create({
     },
     themeOption: {
         flex: 1,
-        backgroundColor: 'white',
         borderRadius: 24,
         padding: 16,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#F1F5F9',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.02,
         shadowRadius: 8,
         elevation: 2,
     },
-    activeThemeOption: {
-        borderColor: Colors.light.primary,
-        backgroundColor: '#F0FDF4',
-    },
     themeIconWrapper: {
         width: 56,
         height: 56,
         borderRadius: 18,
-        backgroundColor: '#F8FAFC',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 12,
     },
-    activeThemeIconWrapper: {
-        backgroundColor: Colors.light.primary,
-    },
     themeLabel: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#64748B',
-    },
-    activeThemeLabel: {
-        color: Colors.light.primary,
     },
     hintText: {
         fontSize: 13,
-        color: '#94A3B8',
         marginTop: 12,
         fontWeight: '500',
     },
@@ -303,11 +327,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: 'white',
         borderRadius: 24,
         padding: 20,
         borderWidth: 1,
-        borderColor: '#F1F5F9',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.02,
@@ -321,29 +343,24 @@ const styles = StyleSheet.create({
     toggleLabel: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#0F172A',
         marginBottom: 4,
     },
     toggleDescription: {
         fontSize: 13,
-        color: '#64748B',
         fontWeight: '500',
     },
     footer: {
         padding: 24,
         paddingBottom: Platform.OS === 'ios' ? 40 : 24,
         borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
     },
     saveButton: {
-        backgroundColor: Colors.light.primary,
         flexDirection: 'row',
         height: 60,
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
-        shadowColor: Colors.light.primary,
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.2,
         shadowRadius: 15,

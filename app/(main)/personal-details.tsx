@@ -1,11 +1,12 @@
+import AppLoader from "@/components/ui/AppLoader";
+import BackButton from "@/components/ui/BackButton";
 import { db } from "@/config/firebaseConfig";
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import {
     Activity01Icon,
-    ArrowLeft01Icon,
     DropletIcon,
     FireIcon,
     MenuRestaurantIcon,
@@ -14,11 +15,9 @@ import {
 } from "hugeicons-react-native";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
@@ -27,10 +26,12 @@ import {
     View,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PersonalDetailsScreen() {
     const { user } = useUser();
     const router = useRouter();
+    const { colors, isDark } = useTheme();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -50,10 +51,10 @@ export default function PersonalDetailsScreen() {
                 if (userSnap.exists()) {
                     const data = userSnap.data();
                     setDailyCalories(data.dailyCalories?.toString() || "2000");
-                    setProtein(data.protein?.toString() || "150");
-                    setCarbs(data.carbs?.toString() || "250");
-                    setFats(data.fats?.toString() || "70");
-                    setWaterIntake(data.waterIntake?.toString() || "2.5");
+                    setProtein(data.protein?.toFixed(1) || "150.0");
+                    setCarbs(data.carbs?.toFixed(1) || "250.0");
+                    setFats(data.fats?.toFixed(1) || "70.0");
+                    setWaterIntake(data.waterIntake?.toFixed(1) || "2.5");
                 }
             } catch (error) {
                 console.error("Error fetching user data:", error);
@@ -72,9 +73,9 @@ export default function PersonalDetailsScreen() {
             const userRef = doc(db, "users", user.id);
             await updateDoc(userRef, {
                 dailyCalories: parseInt(dailyCalories),
-                protein: parseInt(protein),
-                carbs: parseInt(carbs),
-                fats: parseInt(fats),
+                protein: parseFloat(protein),
+                carbs: parseFloat(carbs),
+                fats: parseFloat(fats),
                 waterIntake: parseFloat(waterIntake),
                 updatedAt: serverTimestamp()
             });
@@ -91,20 +92,18 @@ export default function PersonalDetailsScreen() {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.light.primary} />
+            <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+                <AppLoader label="Loading your goals..." />
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeft01Icon size={24} color="#0F172A" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Personal Details</Text>
-                <View style={{ width: 40 }} />
+                <BackButton />
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Personal Details</Text>
+                <View style={{ width: 44 }} />
             </View>
 
             <KeyboardAvoidingView 
@@ -116,119 +115,123 @@ export default function PersonalDetailsScreen() {
                     showsVerticalScrollIndicator={false}
                 >
                     <Animated.View entering={FadeInDown.duration(600).delay(100)}>
-                        <Text style={styles.sectionDescription}>
+                        <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
                             Set your daily nutrition and hydration goals. These will be used to track your progress and provide personalized AI insights.
                         </Text>
                     </Animated.View>
 
                     <View style={styles.form}>
                         {/* Daily Calories */}
-                        <Animated.View entering={FadeInDown.duration(600).delay(200)} style={styles.inputCard}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#FFF7ED' }]}>
+                        <Animated.View entering={FadeInDown.duration(600).delay(200)} style={[styles.inputCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}>
+                            <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(249, 115, 22, 0.1)' : '#FFF7ED' }]}>
                                 <Activity01Icon size={24} color="#F97316" />
                             </View>
                             <View style={styles.inputWrapper}>
-                                <Text style={styles.inputLabel}>Daily Calorie Goal</Text>
+                                <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Daily Calorie Goal</Text>
                                 <TextInput 
-                                    style={styles.input}
+                                    style={[styles.input, { color: colors.text }]}
                                     value={dailyCalories}
                                     onChangeText={setDailyCalories}
-                                    keyboardType="numeric"
+                                    keyboardType="decimal-pad"
                                     placeholder="2000"
-                                    placeholderTextColor="#94A3B8"
+                                    placeholderTextColor={colors.textMuted}
                                 />
                             </View>
-                            <Text style={styles.unitText}>kcal</Text>
+                            <Text style={[styles.unitText, { color: colors.textSecondary }]}>kcal</Text>
                         </Animated.View>
 
                         {/* Protein */}
-                        <Animated.View entering={FadeInDown.duration(600).delay(300)} style={styles.inputCard}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#EFF6FF' }]}>
+                        <Animated.View entering={FadeInDown.duration(600).delay(300)} style={[styles.inputCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}>
+                            <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF' }]}>
                                 <ZapIcon size={24} color="#3B82F6" />
                             </View>
                             <View style={styles.inputWrapper}>
-                                <Text style={styles.inputLabel}>Protein Goal</Text>
+                                <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Protein Goal</Text>
                                 <TextInput 
-                                    style={styles.input}
+                                    style={[styles.input, { color: colors.text }]}
                                     value={protein}
                                     onChangeText={setProtein}
-                                    keyboardType="numeric"
+                                    keyboardType="decimal-pad"
                                     placeholder="150"
-                                    placeholderTextColor="#94A3B8"
+                                    placeholderTextColor={colors.textMuted}
                                 />
                             </View>
-                            <Text style={styles.unitText}>g</Text>
+                            <Text style={[styles.unitText, { color: colors.textSecondary }]}>g</Text>
                         </Animated.View>
 
                         {/* Carbs */}
-                        <Animated.View entering={FadeInDown.duration(600).delay(400)} style={styles.inputCard}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#F0FDF4' }]}>
+                        <Animated.View entering={FadeInDown.duration(600).delay(400)} style={[styles.inputCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}>
+                            <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#F0FDF4' }]}>
                                 <MenuRestaurantIcon size={24} color="#10B981" />
                             </View>
                             <View style={styles.inputWrapper}>
-                                <Text style={styles.inputLabel}>Carbs Goal</Text>
+                                <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Carbs Goal</Text>
                                 <TextInput 
-                                    style={styles.input}
+                                    style={[styles.input, { color: colors.text }]}
                                     value={carbs}
                                     onChangeText={setCarbs}
-                                    keyboardType="numeric"
+                                    keyboardType="decimal-pad"
                                     placeholder="250"
-                                    placeholderTextColor="#94A3B8"
+                                    placeholderTextColor={colors.textMuted}
                                 />
                             </View>
-                            <Text style={styles.unitText}>g</Text>
+                            <Text style={[styles.unitText, { color: colors.textSecondary }]}>g</Text>
                         </Animated.View>
 
                         {/* Fat */}
-                        <Animated.View entering={FadeInDown.duration(600).delay(500)} style={styles.inputCard}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#FEF2F2' }]}>
+                        <Animated.View entering={FadeInDown.duration(600).delay(500)} style={[styles.inputCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}>
+                            <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#FEF2F2' }]}>
                                 <FireIcon size={24} color="#EF4444" />
                             </View>
                             <View style={styles.inputWrapper}>
-                                <Text style={styles.inputLabel}>Fat Goal</Text>
+                                <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Fat Goal</Text>
                                 <TextInput 
-                                    style={styles.input}
+                                    style={[styles.input, { color: colors.text }]}
                                     value={fats}
                                     onChangeText={setFats}
-                                    keyboardType="numeric"
+                                    keyboardType="decimal-pad"
                                     placeholder="70"
-                                    placeholderTextColor="#94A3B8"
+                                    placeholderTextColor={colors.textMuted}
                                 />
                             </View>
-                            <Text style={styles.unitText}>g</Text>
+                            <Text style={[styles.unitText, { color: colors.textSecondary }]}>g</Text>
                         </Animated.View>
 
                         {/* Water Intake */}
-                        <Animated.View entering={FadeInDown.duration(600).delay(600)} style={styles.inputCard}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#F5F3FF' }]}>
+                        <Animated.View entering={FadeInDown.duration(600).delay(600)} style={[styles.inputCard, { backgroundColor: isDark ? colors.surface : 'white', borderColor: colors.border }]}>
+                            <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.1)' : '#F5F3FF' }]}>
                                 <DropletIcon size={24} color="#8B5CF6" />
                             </View>
                             <View style={styles.inputWrapper}>
-                                <Text style={styles.inputLabel}>Water Intake Goal</Text>
+                                <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Water Intake Goal</Text>
                                 <TextInput 
-                                    style={styles.input}
+                                    style={[styles.input, { color: colors.text }]}
                                     value={waterIntake}
                                     onChangeText={setWaterIntake}
                                     keyboardType="decimal-pad"
                                     placeholder="2.5"
-                                    placeholderTextColor="#94A3B8"
+                                    placeholderTextColor={colors.textMuted}
                                 />
                             </View>
-                            <Text style={styles.unitText}>L</Text>
+                            <Text style={[styles.unitText, { color: colors.textSecondary }]}>L</Text>
                         </Animated.View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
                 <TouchableOpacity 
-                    style={[styles.saveButton, saving && styles.disabledButton]}
+                    style={[
+                        styles.saveButton, 
+                        { backgroundColor: colors.primary, shadowColor: colors.primary },
+                        saving && styles.disabledButton
+                    ]}
                     onPress={handleSave}
                     disabled={saving}
                     activeOpacity={0.8}
                 >
                     {saving ? (
-                        <ActivityIndicator color="white" />
+                        <AppLoader size={24} />
                     ) : (
                         <>
                             <Tick02Icon size={20} color="white" variant="stroke" />
@@ -244,13 +247,11 @@ export default function PersonalDetailsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
     },
     header: {
         flexDirection: 'row',
@@ -260,18 +261,9 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'ios' ? 20 : 60,
         paddingBottom: 20,
     },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8FAFC',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#0F172A',
     },
     scrollContent: {
         paddingHorizontal: 24,
@@ -279,7 +271,6 @@ const styles = StyleSheet.create({
     },
     sectionDescription: {
         fontSize: 15,
-        color: '#64748B',
         lineHeight: 22,
         marginBottom: 32,
         fontWeight: '500',
@@ -290,11 +281,9 @@ const styles = StyleSheet.create({
     inputCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'white',
         borderRadius: 24,
         padding: 16,
         borderWidth: 1,
-        borderColor: '#F1F5F9',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.02,
@@ -315,7 +304,6 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 12,
         fontWeight: '700',
-        color: '#94A3B8',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
         marginBottom: 4,
@@ -323,30 +311,25 @@ const styles = StyleSheet.create({
     input: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#0F172A',
         padding: 0,
     },
     unitText: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#64748B',
         marginLeft: 8,
     },
     footer: {
         padding: 24,
         paddingBottom: Platform.OS === 'ios' ? 40 : 24,
         borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
     },
     saveButton: {
-        backgroundColor: Colors.light.primary,
         flexDirection: 'row',
         height: 60,
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
-        shadowColor: Colors.light.primary,
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.2,
         shadowRadius: 15,
