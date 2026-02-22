@@ -50,8 +50,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "e88a4130-629d-40ee-83e2-787941507429"
+        "projectId": "0db9ecb6-a6d5-4e02-8d9c-9d725df0fc3c"
       }
-    }
+    },
+    "owner": "ramanandtomar07"
   }
 }
