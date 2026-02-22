@@ -127,24 +127,27 @@ export default function Analytics() {
       setWeeklyConsumed(consumedPerDay);
       setWeeklyWater(waterPerDay);
 
-      // 4. Calculate Actual Consecutive Streak
+      // 4. Calculate Actual Consecutive Streak (Optimized: single query for last 30 days)
+      const streakLimitDate = subDays(new Date(), 30);
+      const streakQuery = query(
+        logsRef,
+        where("userId", "==", user.id),
+        where("date", ">=", format(streakLimitDate, "yyyy-MM-dd"))
+      );
+      const streakSnap = await getDocs(streakQuery);
+      const activityDates = new Set(streakSnap.docs.map(doc => doc.data().date));
+      
       let streak = 0;
       let checkDate = new Date();
       
-      // Check today first, then go backwards
       while (true) {
         const dateStr = format(checkDate, "yyyy-MM-dd");
-        const streakQuery = query(
-          logsRef,
-          where("userId", "==", user.id),
-          where("date", "==", dateStr)
-        );
-        const streakSnap = await getDocs(streakQuery);
-        
-        if (!streakSnap.empty) {
+        if (activityDates.has(dateStr)) {
           streak++;
           checkDate = subDays(checkDate, 1);
         } else {
+          // If no log today, it might still be part of a streak if they haven't finished the day?
+          // But standard streak logic usually requires at least one log per day.
           break;
         }
       }

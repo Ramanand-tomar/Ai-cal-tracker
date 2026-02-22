@@ -158,15 +158,13 @@ export default function Index() {
           amount: log.amount || 0,
           duration: log.duration,
           intensity: log.intensity,
-          time
+          time,
+          timestamp: log.timestamp?.toDate() || new Date(log.date + 'T' + (log.time || '00:00'))
         };
       });
 
-      // Sort by time (newest first) needed if not ordered by query
-      mappedActivities.sort((a, b) => {
-        // Simple sort, robust implementation would keep raw timestamp
-        return 0; 
-      });
+      // Sort by time (newest first)
+      mappedActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
       setActivities(mappedActivities);
 
